@@ -1,0 +1,27 @@
+---
+title: "Introduction homework"
+author: "Mo Chen"
+date: "2022-09-15"
+output: html_document
+---
+
+**student ID: r11241202**
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r, echo=FALSE}
+fish<-read.table('DATA/reef_fish.txt', header = TRUE,sep="\t", dec=".")
+```
+
+### Dataset of Reef fish
+```{r, echo=FALSE}
+fish
+```
+
+#### Plot result:
+```{r , echo=FALSE}
+barplot(fish$richness, main="Top 10 reef fish Richness (Allen, 2000)", horiz=TRUE, names.arg=fish$country, cex.names=0.5, las=1)
+```
