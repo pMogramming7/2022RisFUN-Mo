@@ -45,4 +45,3 @@ income.world_sep
 #also you can separate them in original column by split them in rows 
 income.world_long_var %>% separate_rows(var1, sep = "_")
 
-#check for push git error
