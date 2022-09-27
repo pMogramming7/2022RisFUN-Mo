@@ -16,7 +16,7 @@ xfun::embed_file('environment.R')
 ```
 
 ```{r echo=FALSE, purl=F}
-xfun::embed_file('Data/reef_fish.xlsx')
+
 ```
 
 
@@ -230,8 +230,8 @@ My file `reef_fish` is an .xlsx file located in the file 'Data' of my working di
 # 2. reading my `reef_fish.xlsx` in my working directory
 # 3. importing `reef_fish.xlsx` in a `fish` object
 library(readxl) # load the package `readxl'
-read_excel('Data/reef_fish.xlsx') # automatically print on my screen
-fish<-read_excel('Data/reef_fish.xlsx') # store my table in an object called `fish`
+readxl:: read_xlsx ('Data/reef_fish.xlsx') # automatically print on my screen
+fish<-readxl:: read_xlsx ('Data/reef_fish.xlsx') # store my table in an object called `fish`
 fish # print my object `fish`   
 ```
 

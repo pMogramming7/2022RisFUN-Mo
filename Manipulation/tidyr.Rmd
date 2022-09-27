@@ -1,0 +1,167 @@
+---
+title: "tidyr"
+---
+
+```{r eval = TRUE,  message=F, include=FALSE, warning=F, purl=F, results="hide"}
+knitr::purl('tidyr.Rmd', documentation = 0)
+```
+
+
+```{r echo=FALSE, purl=F}
+xfun::embed_file('tidyr.Rmd')
+```
+
+```{r echo=FALSE, purl=F}
+xfun::embed_file('tidyr.R')
+```
+
+```{r echo=FALSE, purl=F}
+xfun::embed_file('Data/tw_corals.txt')
+```
+
+
+```{r echo=FALSE, purl=F}
+xfun::embed_file('Data/metoo.txt')
+```
+
+# `tidyr`
+
+Data tables come in different sizes and shape; they can be a very simple two column data set or they can consist of many columns and “sub-columns”. Understanding its structure, and learning how to reshape it into a workable format is critical to an effective and error free analysis.The goal of `tidyr` is to help you create **tidy data**. Tidy data is data where:
+
+1. Every column is a variable 
+
+2. Every row is an observation
+
+3. Every cell is a single values.
+
+Tidy data describes a standard way of storing data that is used wherever possible throughout the [tidyverse](https://www.tidyverse.org/). If you ensure that your data is tidy, you’ll spend less time fighting with the tools and more time working on your analysis. A **Cheatsheet** is available [here](https://github.com/rstudio/cheatsheets/blob/master/data-import.pdf). 
+
+`tidyr` functions fall into five main categories:
+
+- **Pivoting** which converts between long and wide forms. tidyr 1.0.0 introduces `pivot_longer()` and `pivot_wider()`, replacing the older `spread()` and `gather()` functions. See `vignette("pivot")` for more details.
+
+- **Rectangling**, which turns deeply nested lists (as from JSON [JavaScript Object Notation]) into tidy tibbles. See `unnest_longer()`, `unnest_wider()`, `hoist()`, and `vignette("rectangle")` for more details.
+
+- **Nesting** converts grouped data to a form where each group becomes a single row containing a nested data frame, and unnesting does the opposite. See `nest()`, `unnest()`, and `vignette("nest")` for more details.
+
+- **Splitting and combining** character columns. Use `separate()` and `extract()` to pull a single character column into multiple columns; use `unite()` to combine multiple columns into a single character column.
+
+- Make **implicit missing values** explicit with `complete()`; make explicit missing values implicit with `drop_na()`; replace missing values with next/previous value with `fill()`, or a known value with `replace_na()`.
+
+
+Those functions find their use in fastening  data exploration and transformation.
+`tidyr` is the package by excellence to reorganize the structure of a table. 
+
+
+```{r class.source = "fold-show",  eval=T}
+library (tidyr)
+```
+
+# Pivoting
+
+Dai & Horng (2009) summarize the coral diversity around Taiwan. `TW_corals` displays scleractinian coral richness by coral reef regions:
+
+```{r,  eval=T}
+
+TW_corals<-read.table('Data/tw_corals.txt', header=T, sep='\t', dec='.') 
+TW_corals
+```
+
+This table is a **wide table**. It can easily be reformatted into a long table combining the pipe operator `%>%` with `pivot_longer` as following:
+
+```{r,  eval=T}
+TW_corals_long <- TW_corals %>% pivot_longer(Southern_TW:Northern_Is, names_to = "Region", values_to = "Richness")
+# TW_corals_long <-TW_corals %>% pivot_longer(cols = everything(), names_to = "Region", values_to = "Richness") 
+TW_corals_long 
+```
+
+The reverse operation can be made using `pivot_wider` in order to recreate the wide version of our table: 
+
+```{r,  eval=T}
+TW_corals_wide <- pivot_wider(TW_corals_long, names_from = Region, values_from = Richness) 
+TW_corals_wide
+```
+
+<span style="color: red">**Note**: The pipe operator `%>%` is optional, but it is generally more elegant and you will discover its importance  when your coding skills are maturing and data sets become more complex as following.</span>
+
+Here’s a subset of median income by gender and by work experience for 2017 in four states in US compared with Taiwan (real data).
+
+```{r,  eval=T}
+income<-read.table('Data/metoo.txt',header=T, sep="\t", dec=".", na.strings = "n/a")
+income
+```
+
+At first glance, it might seem that we have three variables as in the earlier example, but upon closer examination, we see that we can tease out two variables from the column names: sex (`male` and `female`) and work experience (`fulltime` and `other`).
+
+`pivot_longer` has an argument, `names_sep`, that is passed the character that is used to delimit the two variable values. In our example, this character is `_`. Since the column values will be split across two variables we will also need to pass two column names to the `names_to` argument.
+
+```{r,  eval=T}
+income_long <- income %>%  pivot_longer(cols = -state, 
+                         names_to = c("gender","work"), 
+                         names_sep = "_", 
+                         values_to = "income")
+                         
+income_long
+```
+
+Obviously, the reverse is possible using `pivot_wider`:
+
+```{r,  eval=T}
+income_long %>% pivot_wider(names_from = c(gender,work), 
+            values_from = income,
+            names_sep = ".")
+```
+
+
+*As a package evolves, some functions may turn **depreciated**. The function may still work but it would be recommended to shift for the new function performing the task. The package `tidyr` is a good example of this evolution. The function `gather` is depreciated but still exists (I am getting older and I keep using old function). It is now recommended to switch to `pivot_longer()` still under active development. Thus `df %>% gather("key", "value", x, y, z)`is now equivalent to `df %>% pivot_longer(c(x, y, z), names_to = "key", values_to = "value")`.
+
+
+# Splitting
+
+The `tidyr` package offers other functions not directly tied to pivoting. 
+
+## columns
+
+For example, if you want to split a column into two or more columns based on a column’s delimited value, you can use the `separate` function. 
+
+- Let's create a table with a dummy variable called `var1`
+
+```{r,  eval=T}
+# Let's first create a delimited table
+income_long_var <- income %>%  pivot_longer(cols = -1, 
+                         names_to = "var1", 
+                         values_to = "income")
+income_long_var
+```
+
+
+- Split `var1` into two new columns
+
+```{r,  eval=T}
+# Split var1 column into two columns
+income_sep <- income_long_var %>%  separate(col = var1, 
+                    sep = "_", 
+                    into = c("gender", "work"))
+income_sep
+```
+
+## rows 
+
+Split `var1` into two rows
+
+```{r,  eval=T}
+income_long_var %>% separate_rows(var1, sep = "_")
+```
+
+Within the packge `tidyr`, check `uncount` replicating rows by count, `unite` combining elements from many columns into a single column, etc.  You have many  documentation existing online online on the use of this package. It is a very convenient package when you have to repeat a formatting task on a large data set. You can also learn more about tidy data using: `vignette("tidy-data")` and visit [tidyverse](https://www.tidyverse.org/) for more examples on reshaping data set.  
+
+
+<p class="alert">
+**`r knitr::asis_output("\U26A0")` Practice 2.2** The data set `rairuoho` is available at the following [link](https://www.dipintothereef.com/uploads/3/7/3/5/37359245/rairuoho.txt). It provides 8 days length data of Easter grass exposed to different treatments.
+The 6 variables **`day3`** to **`day8`** are mean length of the grass at the given day. **`germinate`** is the no. of germinated seeds.**`bed`** is a factor with four levels (`mould1`,`mould2`, `paper4`, `paper8`) indicating where the grass was growing and thickness. **`treatement`** has two levels `water` and `nutrient` indicating watering scheme (pure water or enriched with nutrients). **`spatial1`** and **`spatial2`** are the vertical and horizontal position of the plot, respectively. The variable `row` and `column` are meaningless should be removed.
+</p>
+
+
+<p class="alert">
+**Instruction:** within the variable `treatement`, `nutrient` is misleading because it is water enriched with nutrient. Replace `nutrient` with `enriched in the data set`. Reformat the table in order to have the `day` as a single variable (factor) containing 6 levels (`day3`, `day4`, `day5`, `day6`, `day7`, `day8`). Another variable `length`  will be created to receive the length of the grass at the given day. Merge variables `Spatial1` and `Spatial2` in order to obtain the following format for the spatial coordinates of an observation `upper_left`. Remove variables `row` and `column`. This homework must be prepared in *.Rmd* format that you will knit as a *.html* file. You will **push** your files into a public repository available from your Github account. You will share with me be email [vianneydenis@g.ntu.edu.tw] the address (URL) of this repository (such as https://github.com/vianneydenis/OCEAN5098.git) **before next Monday** in order for me to check your work. The **title of your email ** should be `Practice 2.2 (your name: your student no.)`. 
+</p>

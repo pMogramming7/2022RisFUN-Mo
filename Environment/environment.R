@@ -60,8 +60,8 @@ rm(list=ls())
 # 2. reading my `reef_fish.xlsx` in my working directory
 # 3. importing `reef_fish.xlsx` in a `fish` object
 library(readxl) # load the package `readxl'
-read_excel('Data/reef_fish.xlsx') # automatically print on my screen
-fish<-read_excel('Data/reef_fish.xlsx') # store my table in an object called `fish`
+readxl:: read_xlsx ('Data/reef_fish.xlsx') # automatically print on my screen
+fish<-readxl:: read_xlsx ('Data/reef_fish.xlsx') # store my table in an object called `fish`
 fish # print my object `fish`   
 
 # importing a .txt file
