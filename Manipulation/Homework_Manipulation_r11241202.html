@@ -13,7 +13,7 @@
 
 <meta name="date" content="2022-10-03" />
 
-<title>Homework_Manipulation_r11241202</title>
+<title>Homework_Manipulation</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -363,36 +363,72 @@ pre code {
 
 
 
-<h1 class="title toc-ignore">Homework_Manipulation_r11241202</h1>
+<h1 class="title toc-ignore">Homework_Manipulation</h1>
 <h4 class="author">Mo Chen</h4>
 <h4 class="date">2022-10-03</h4>
 
 </div>
 
 
+<div id="student-id-r11241202" class="section level2">
+<h2>student ID: r11241202</h2>
+<div id="setup-environment-and-call-table" class="section level3">
+<h3>setup environment and call table</h3>
+<pre><code>## 
+## 載入套件：&#39;dplyr&#39;</code></pre>
+<pre><code>## 下列物件被遮斷自 &#39;package:stats&#39;:
+## 
+##     filter, lag</code></pre>
+<pre><code>## 下列物件被遮斷自 &#39;package:base&#39;:
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<pre><code>##   day3 day4 day5 day6 day7 day8 germinate    bed treatment spatial1 spatial2
+## 1    2   13   34   85  112  121        18 paper4  nutrient    upper     left
+## 2    5   22   60   95  108  116        19 mould1  nutrient    upper     left
+## 3    5   26   34   73   96  111        18 paper8  nutrient    upper     left
+## 4    7   24   61   91  101  117        17 mould2  nutrient    upper     left
+## 5    0    9   31   61   92  116        12 paper4  nutrient    lower     left
+## 6    7   30   66   91  116  129        18 mould1  nutrient    lower     left
+##   row column
+## 1   1      1
+## 2   2      1
+## 3   3      1
+## 4   4      1
+## 5   5      1
+## 6   6      1</code></pre>
+</div>
+<div id="manipulation" class="section level3">
+<h3>Manipulation</h3>
 <pre class="r"><code>Rairuoho &lt;- subset(rairuoho[1:11])
-Rairuoho.days &lt;- Rairuoho %&gt;%pivot_longer(cols=starts_with(&quot;day&quot;),
+
+Rairuoho.days &lt;- Rairuoho %&gt;%  pivot_longer(cols=starts_with(&quot;day&quot;),
                           names_to = &quot;day&quot;,
                           names_prefix = &quot;day&quot;,
                           values_to = &quot;length&quot;,
                           values_drop_na = &quot;TRUE&quot;)
-Rairuoho.Final &lt;- Rairuoho.days %&gt;% unite(&quot;sp_coor&quot;, 4:5, remove = TRUE)</code></pre>
-<div id="rairuoho" class="section level3">
-<h3>Rairuoho</h3>
-<pre><code>## # A tibble: 288 × 6
-##    germinate bed    treatment sp_coor    day   length
-##        &lt;int&gt; &lt;chr&gt;  &lt;chr&gt;     &lt;chr&gt;      &lt;chr&gt;  &lt;int&gt;
-##  1        18 paper4 nutrient  upper_left 3          2
-##  2        18 paper4 nutrient  upper_left 4         13
-##  3        18 paper4 nutrient  upper_left 5         34
-##  4        18 paper4 nutrient  upper_left 6         85
-##  5        18 paper4 nutrient  upper_left 7        112
-##  6        18 paper4 nutrient  upper_left 8        121
-##  7        19 mould1 nutrient  upper_left 3          5
-##  8        19 mould1 nutrient  upper_left 4         22
-##  9        19 mould1 nutrient  upper_left 5         60
-## 10        19 mould1 nutrient  upper_left 6         95
-## # … with 278 more rows</code></pre>
+
+Rairuoho.coordinate &lt;- Rairuoho.days %&gt;% unite(&quot;sp_coor&quot;, 4:5, remove = TRUE)
+
+Rairuoho.coordinate$treatment &lt;- ifelse(Rairuoho.coordinate$treatment==&quot;nutrient&quot;, &quot;enriched&quot;, &quot;water&quot;)</code></pre>
+<hr />
+</div>
+<div id="result-presentation-head-tail" class="section level3">
+<h3>Result presentation (head &amp; tail)</h3>
+<pre><code>## # A tibble: 3 × 6
+##   germinate bed    treatment sp_coor    day   length
+##       &lt;int&gt; &lt;chr&gt;  &lt;chr&gt;     &lt;chr&gt;      &lt;chr&gt;  &lt;int&gt;
+## 1        18 paper4 enriched  upper_left 3          2
+## 2        18 paper4 enriched  upper_left 4         13
+## 3        18 paper4 enriched  upper_left 5         34</code></pre>
+<pre><code>## # A tibble: 5 × 6
+##   germinate bed    treatment sp_coor     day   length
+##       &lt;int&gt; &lt;chr&gt;  &lt;chr&gt;     &lt;chr&gt;       &lt;chr&gt;  &lt;int&gt;
+## 1        14 mould2 water     lower_right 4         26
+## 2        14 mould2 water     lower_right 5         57
+## 3        14 mould2 water     lower_right 6         72
+## 4        14 mould2 water     lower_right 7         85
+## 5        14 mould2 water     lower_right 8         93</code></pre>
+</div>
 </div>
 
 
