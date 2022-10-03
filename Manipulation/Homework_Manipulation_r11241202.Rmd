@@ -1,0 +1,28 @@
+---
+title: "Homework_Manipulation_r11241202"
+author: "Mo Chen"
+date: "2022-10-03"
+output: html_document
+---
+
+
+
+```{r rairuoho, echo= FALSE }
+library(tidyr)
+rairuoho <- read.table("Data.manipulation/rairuoho.txt", header=T, sep="\t", na.strings = "n/a")
+```
+
+```{r Rairuoho, echo=TRUE}
+Rairuoho <- subset(rairuoho[1:11])
+Rairuoho.days <- Rairuoho %>%pivot_longer(cols=starts_with("day"),
+                          names_to = "day",
+                          names_prefix = "day",
+                          values_to = "length",
+                          values_drop_na = "TRUE")
+Rairuoho.Final <- Rairuoho.days %>% unite("sp_coor", 4:5, remove = TRUE)
+```
+### Rairuoho
+```{r, echo=FALSE}
+Rairuoho.Final
+```
+
