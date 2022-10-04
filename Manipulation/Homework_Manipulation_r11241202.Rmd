@@ -10,10 +10,9 @@ student ID: r11241202
 ### setup environment and call table
 ```{r, echo=FALSE}
 rm(list = ls())
-library(datasets)
-library(dplyr)
-library(tidyr)
+library(tidyverse)
 rairuoho <- read.table("Data.manipulation/rairuoho.txt", header=T, sep="\t", na.strings = "n/a")
+rairuohoo <- read.delim('https://www.dipintothereef.com/uploads/3/7/3/5/37359245/rairuoho.txt')
 head(rairuoho)
 ```
 
