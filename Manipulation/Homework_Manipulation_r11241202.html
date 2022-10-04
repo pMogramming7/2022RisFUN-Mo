@@ -370,8 +370,8 @@ pre code {
 </div>
 
 
-<div id="student-id-r11241202" class="section level2">
-<h2>student ID: r11241202</h2>
+<p>student ID: r11241202</p>
+<hr />
 <div id="setup-environment-and-call-table" class="section level3">
 <h3>setup environment and call table</h3>
 <pre><code>## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.2 ──
@@ -388,9 +388,24 @@ pre code {
 ##   row column
 ## 1   1      1
 ## 2   2      1</code></pre>
+<hr />
 </div>
-<div id="manipulation" class="section level3">
-<h3>Manipulation</h3>
+<div id="manipulation-evalfalse" class="section level3">
+<h3>Manipulation (eval=FALSE)</h3>
+<pre class="r"><code>Rairuoho &lt;- subset(rairuoho[, 1:11])
+head(Rairuoho, 3)
+Rairuoho.days &lt;- Rairuoho %&gt;% pivot_longer(cols=starts_with(&quot;day&quot;),
+                          names_to = &quot;day&quot;,
+                          names_prefix = &quot;day&quot;,
+                          values_to = &quot;length&quot;,
+                          values_drop_na = &quot;TRUE&quot;)
+
+Rairuoho.coordinate &lt;- Rairuoho.days %&gt;% unite(&quot;sp_coor&quot;, 4:5, sep = &quot;_&quot;, remove = TRUE)
+
+Rairuoho.mutate &lt;- Rairuoho.coordinate %&gt;% mutate(treatment = replace(treatment, treatment ==&quot;nutrient&quot;, &quot;enriched&quot;))</code></pre>
+</div>
+<div id="we-can-also-do-multiple-function-by-putting-them-together" class="section level3">
+<h3>we can also do multiple function by putting them together</h3>
 <pre class="r"><code>Rairuoho &lt;- subset(rairuoho[, 1:11])
 head(Rairuoho, 3)</code></pre>
 <pre><code>##   day3 day4 day5 day6 day7 day8 germinate    bed treatment spatial1 spatial2
@@ -401,11 +416,7 @@ head(Rairuoho, 3)</code></pre>
                           names_to = &quot;day&quot;,
                           names_prefix = &quot;day&quot;,
                           values_to = &quot;length&quot;,
-                          values_drop_na = &quot;TRUE&quot;)
-
-Rairuoho.coordinate &lt;- Rairuoho.days %&gt;% unite(&quot;sp_coor&quot;, 4:5, sep = &quot;_&quot;, remove = TRUE)
-
-Rairuoho.mutate &lt;- Rairuoho.coordinate %&gt;% mutate(treatment = replace(treatment, treatment ==&quot;nutrient&quot;, &quot;enriched&quot;))</code></pre>
+                          values_drop_na = &quot;TRUE&quot;) %&gt;% unite(&quot;sp_coor&quot;, 4:5, sep = &quot;_&quot;, remove = TRUE) %&gt;% mutate(treatment = replace(treatment, treatment ==&quot;nutrient&quot;, &quot;enriched&quot;))</code></pre>
 <hr />
 </div>
 <div id="result-presentation-head-tail" class="section level3">
@@ -424,7 +435,6 @@ Rairuoho.mutate &lt;- Rairuoho.coordinate %&gt;% mutate(treatment = replace(trea
 ## 3        14 mould2 water     lower_right 6         72
 ## 4        14 mould2 water     lower_right 7         85
 ## 5        14 mould2 water     lower_right 8         93</code></pre>
-</div>
 </div>
 
 

@@ -4,9 +4,10 @@ author: "Mo Chen"
 date: "2022-10-03"
 output: html_document
 ---
-
 student ID: r11241202
+
 ---
+
 ### setup environment and call table
 ```{r, eval=T, echo=FALSE}
 rm(list = ls())
@@ -19,8 +20,10 @@ rairuohoo <- read.delim('https://www.dipintothereef.com/uploads/3/7/3/5/37359245
 head(rairuoho, 2)
 ```
 
-### Manipulation 
-```{r, echo=TRUE}
+---
+
+### Manipulation (eval=FALSE)
+```{r, eval=FALSE, include=TRUE}
 Rairuoho <- subset(rairuoho[, 1:11])
 head(Rairuoho, 3)
 Rairuoho.days <- Rairuoho %>% pivot_longer(cols=starts_with("day"),
@@ -34,10 +37,22 @@ Rairuoho.coordinate <- Rairuoho.days %>% unite("sp_coor", 4:5, sep = "_", remove
 Rairuoho.mutate <- Rairuoho.coordinate %>% mutate(treatment = replace(treatment, treatment =="nutrient", "enriched"))
 ```
 
+### we can also do multiple function by putting them together
+```{r, eval=TRUE, echo=TRUE}
+Rairuoho <- subset(rairuoho[, 1:11])
+head(Rairuoho, 3)
+Rairuoho.days <- Rairuoho %>% pivot_longer(cols=starts_with("day"),
+                          names_to = "day",
+                          names_prefix = "day",
+                          values_to = "length",
+                          values_drop_na = "TRUE") %>% unite("sp_coor", 4:5, sep = "_", remove = TRUE) %>% mutate(treatment = replace(treatment, treatment =="nutrient", "enriched"))
+```
+
 ---
+
 ### Result presentation (head & tail)
 ```{r, echo=FALSE}
-head(Rairuoho.mutate, 3)
-tail(Rairuoho.mutate, 5)
+head(Rairuoho.days, 3)
+tail(Rairuoho.days, 5)
 ```
 
