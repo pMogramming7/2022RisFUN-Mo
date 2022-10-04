@@ -8,32 +8,36 @@ output: html_document
 student ID: r11241202
 ---
 ### setup environment and call table
-```{r, echo=FALSE}
+```{r, eval=TRUE, echo=FALSE}
 rm(list = ls())
 library(tidyverse)
+```
+
+```{r, echo=FALSE}
 rairuoho <- read.table("Data.manipulation/rairuoho.txt", header=T, sep="\t", na.strings = "n/a")
 rairuohoo <- read.delim('https://www.dipintothereef.com/uploads/3/7/3/5/37359245/rairuoho.txt')
 head(rairuoho)
 ```
 
-### Manipulation
-```{r, echo=TRUE}
-Rairuoho <- subset(rairuoho[1:11])
-
-Rairuoho.days <- Rairuoho %>%  pivot_longer(cols=starts_with("day"),
+### Manipulation 
+```{r}
+Rairuoho <- subset(rairuoho[, 1:11])
+head(Rairuoho, 3)
+Rairuoho.days <- Rairuoho %>% pivot_longer(cols=starts_with("day"),
                           names_to = "day",
                           names_prefix = "day",
                           values_to = "length",
                           values_drop_na = "TRUE")
 
-Rairuoho.coordinate <- Rairuoho.days %>% unite("sp_coor", 4:5, remove = TRUE)
+Rairuoho.coordinate <- Rairuoho.days %>% unite("sp_coor", 4:5, sep = "_", remove = TRUE)
 
-Rairuoho.coordinate$treatment <- ifelse(Rairuoho.coordinate$treatment=="nutrient", "enriched", "water")
+Rairuoho.mutate <- Rairuoho.coordinate %>% mutate(treatment = replace(treatment, treatment =="nutrient", "enriched"))
 ```
+
 ---
 ### Result presentation (head & tail)
 ```{r, echo=FALSE}
-head(Rairuoho.coordinate, 3)
-tail(Rairuoho.coordinate, 5)
+head(Rairuoho.mutate, 3)
+tail(Rairuoho.mutate, 5)
 ```
 
