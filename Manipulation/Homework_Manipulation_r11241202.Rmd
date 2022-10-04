@@ -8,7 +8,7 @@ output: html_document
 student ID: r11241202
 ---
 ### setup environment and call table
-```{r, eval=TRUE, echo=FALSE}
+```{r, eval=T, echo=FALSE}
 rm(list = ls())
 library(tidyverse)
 ```
@@ -16,11 +16,11 @@ library(tidyverse)
 ```{r, echo=FALSE}
 rairuoho <- read.table("Data.manipulation/rairuoho.txt", header=T, sep="\t", na.strings = "n/a")
 rairuohoo <- read.delim('https://www.dipintothereef.com/uploads/3/7/3/5/37359245/rairuoho.txt')
-head(rairuoho)
+head(rairuoho, 2)
 ```
 
 ### Manipulation 
-```{r}
+```{r, echo=TRUE}
 Rairuoho <- subset(rairuoho[, 1:11])
 head(Rairuoho, 3)
 Rairuoho.days <- Rairuoho %>% pivot_longer(cols=starts_with("day"),
