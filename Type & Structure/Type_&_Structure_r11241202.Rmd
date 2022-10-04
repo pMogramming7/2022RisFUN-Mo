@@ -5,26 +5,59 @@ date: "2022-10-04"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(tidyverse)
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r, echo=TRUE}
+a <- c("M", "F", "F", "U", "F", "M", "M", "M", "F", "U")
+typeof(a)
+class(a)
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r, echo=TRUE}
+a.fact <-as.factor(a)
+a.fact
+mode(a.fact)
+typeof(a.fact) # integer: 整數
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r, echo=TRUE}
+attributes(a.fact)$level
+attributes(a.fact)$class
+levels(a.fact)
+factor(a, levels=c("U", "F", "M")) #specify the order as you wish
+```
+
+```{r, echo=TRUE}
+library(datasets)
+str(iris)
+iris.sub <-subset(iris, Species == "setosa" | Species == "virginica")
+levels(iris.sub$Species)
+boxplot(Petal.Width ~ Species, iris.sub, horizontal = TRUE)
+```
+```{r, echo=TRUE}
+droplevels(iris.sub$Species)
+boxplot(Petal.Width ~ Species, iris.sub, horizontal = TRUE)
+```
+
+##### NA means data which is measurable is missing, while NULL means the data is unmeasurable. Therefore when analyzing statistic result, the dataset with NA can not be calculated.
+
+### "list" is a combination of different Data structures
+```{r, echo=TRUE}
+A <- data.frame(
+     x = c(7.3, 29.4, 29.4, 2.9, 12.3, 7.5, 36.0, 4.8, 18.8, 4.2),
+     y = c(5.2, 26.6, 31.2, 2.2, 13.8, 7.8, 35.2, 8.6, 20.3, 1.1) )
+B <- c(TRUE, FALSE)
+C <- c("apples", "oranges", "round")
+my.lst <- list(A = A, B = B, C = C)
+str(my.lst)
+```
+
+### component in list can be extracted using "$" symbol by the specific component name, or you can calling it by its numerical index. 
+
+```{r, echo=TRUE}
+my.lst$A
+my.lst[[2]]
+```
