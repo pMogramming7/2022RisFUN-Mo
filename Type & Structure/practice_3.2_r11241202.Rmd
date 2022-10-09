@@ -1,0 +1,36 @@
+---
+title: "Practice 3.2"
+author: "Mo Chen"
+date: "2022-10-09"
+output: html_document
+---
+
+```{r,echo=FALSE}
+library(tidyverse)
+```
+
+
+```{r, echo=TRUE}
+raw <- data.frame(
+  sub = c("subject_1", "subjcet_2", "subjcet_3", "subjcet_4", "subjcet_5"), 
+  before_diet = c(104, 95, 87, 77, 112), 
+  after_diet = c(96, 91, 81, 75, 118))
+
+raw
+data.long <-  raw %>% pivot_longer(!sub, names_to = "time", values_to = "weight")
+
+list.1 <-list(A = raw, B = data.long)
+list.1
+
+percentage <- (raw$after_diet-raw$before_diet)/raw$before_diet*100
+weight.loss <- data.frame(subjcet= raw$sub, percentage = percentage)
+weight.loss
+
+WEIGHT_LOSS <- list(subject = raw$sub, weight_loss = percentage, weight.loss = weight.loss)
+
+WEIGHT_LOSS
+```
+
+
+
+
