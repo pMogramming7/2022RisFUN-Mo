@@ -25,8 +25,9 @@ list.1
 percentage <- (raw$after_diet-raw$before_diet)/raw$before_diet*100
 weight.loss <- data.frame(subjcet= raw$sub, percentage = percentage)
 weight.loss
+how_enjoy_do_I <- c("quiet_enjoy") 
 
-WEIGHT_LOSS <- list(subject = raw$sub, weight_loss = percentage, weight.loss = weight.loss)
+WEIGHT_LOSS <- list(subject = raw$sub, weight_loss = percentage, weight.loss = weight.loss, fun = how_enjoy_do_I)
 
 WEIGHT_LOSS
 ```
