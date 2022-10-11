@@ -27,9 +27,12 @@ weight.loss <- data.frame(subjcet= raw$sub, percentage = percentage)
 weight.loss
 how_enjoy_do_I <- c("quiet_enjoy") 
 
-WEIGHT_LOSS <- list(subject = raw$sub, weight_loss = percentage, weight.loss = weight.loss, fun = how_enjoy_do_I)
-
+WEIGHT_LOSS <- list(subject = raw$sub, weight_loss = percentage, weight.loss = weight.loss)
 WEIGHT_LOSS
+
+list.2. <- list(WEIGHT_LOSS = WEIGHT_LOSS, fun = how_enjoy_do_I)
+list.2.
+
 ```
 
 

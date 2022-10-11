@@ -427,8 +427,7 @@ weight.loss</code></pre>
 ## 5 subjcet_5   5.357143</code></pre>
 <pre class="r"><code>how_enjoy_do_I &lt;- c(&quot;quiet_enjoy&quot;) 
 
-WEIGHT_LOSS &lt;- list(subject = raw$sub, weight_loss = percentage, weight.loss = weight.loss, fun = how_enjoy_do_I)
-
+WEIGHT_LOSS &lt;- list(subject = raw$sub, weight_loss = percentage, weight.loss = weight.loss)
 WEIGHT_LOSS</code></pre>
 <pre><code>## $subject
 ## [1] &quot;subject_1&quot; &quot;subjcet_2&quot; &quot;subjcet_3&quot; &quot;subjcet_4&quot; &quot;subjcet_5&quot;
@@ -442,7 +441,24 @@ WEIGHT_LOSS</code></pre>
 ## 2 subjcet_2  -4.210526
 ## 3 subjcet_3  -6.896552
 ## 4 subjcet_4  -2.597403
+## 5 subjcet_5   5.357143</code></pre>
+<pre class="r"><code>list.2. &lt;- list(WEIGHT_LOSS = WEIGHT_LOSS, fun = how_enjoy_do_I)
+list.2.</code></pre>
+<pre><code>## $WEIGHT_LOSS
+## $WEIGHT_LOSS$subject
+## [1] &quot;subject_1&quot; &quot;subjcet_2&quot; &quot;subjcet_3&quot; &quot;subjcet_4&quot; &quot;subjcet_5&quot;
+## 
+## $WEIGHT_LOSS$weight_loss
+## [1] -7.692308 -4.210526 -6.896552 -2.597403  5.357143
+## 
+## $WEIGHT_LOSS$weight.loss
+##     subjcet percentage
+## 1 subject_1  -7.692308
+## 2 subjcet_2  -4.210526
+## 3 subjcet_3  -6.896552
+## 4 subjcet_4  -2.597403
 ## 5 subjcet_5   5.357143
+## 
 ## 
 ## $fun
 ## [1] &quot;quiet_enjoy&quot;</code></pre>
