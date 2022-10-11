@@ -1,0 +1,124 @@
+---
+title: "Mo graphics"
+author: "Mo Chen"
+date: "2022-10-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+###point and line plots
+#### Scatterplot
+* It is better to separate the dataset from the character in plot
+```{r, echo=FALSE}
+plot(Petal.Length ~ Petal.Width, data = iris)
+```
+
+#### Customization
+* Add Lebal
+```{r, echo=TRUE}
+plot(Petal.Length ~ Petal.Width, data = iris,
+     xlab = 'petal.length', 
+     ylab = 'petal.width', 
+     main = 'iris')
+```
+
+* Change symbol type by abbreviation
+1. pch = plotting character (by number, number of meaning can be search by Google)
+2. cex = character expansion
+3. col = (0,0,0,0.1) (the last element is "transparency")
+
+```{r, echo= TRUE}
+plot(Petal.Length ~ Petal.Width, data = iris,
+     xlab = 'petal.length', 
+     ylab = 'petal.width', 
+     main = 'iris colorful',
+     pch = 19, cex = 2, 
+     col = rgb(0,1,0.3,0.1))
+```
+
+* different color using
+1. if else (with transparency by function "alpha")
+```{r, echo= TRUE}
+col.iris<-ifelse(iris$Species=='setosa','purple',ifelse(iris$Species=='versicolor','blue','pink')) 
+plot(Petal.Length ~ Petal.Width, data = iris,
+     xlab = 'petal.length', 
+     ylab = 'petal.width', 
+     main = 'iris colorful',
+     pch = 19, cex = 2, 
+     col = scales::alpha(col.iris, 0.3))
+```
+
+* discription of plot (Legend)
+```{r, echo=TRUE}
+col.lev <- as.factor(col.iris)
+str(col.lev)
+plot(Petal.Length ~ Petal.Width, data = iris,
+     xlab = 'Petal width (cm)', 
+     ylab = 'Petal length (cm)', 
+     main = 'iris with legend',
+     cex.axis=1.0, cex.lab=1.5, cex.main=1.5,
+     pch = 19, cex=2, las=1,
+     col = scales::alpha(col.iris, 0.2))
+
+legend(x="bottomright", pch= 19, cex=1.0,
+       legend= c("versicolor","setosa", "virginica"), col=levels(as.factor(scales::alpha(col.lev, 0.8))))
+```
+
+### Types
+#### panel plot
+* scatterplot matrix
+```{r, echo=TRUE}
+pairs(iris[1:4], pch=19, col = scales::alpha(col.iris, 0.2))
+```
+
+* line plot
+```{r, echo=TRUE}
+blossom <- NULL
+blossom$year <- 2010:2019
+blossom$count.alaska <- c(3, 1, 5, 2, 3, 8, 4, 7, 6, 9)
+blossom$count.canada <- c(4, 6, 5, 7, 10, 8, 10, 11, 15, 17)
+as.data.frame(blossom)
+plot(count.alaska ~ year,dat = blossom, type='l',
+      ylab = "No. of flower blossoming")
+```
+
+```{r, echo=TRUE}
+y.rng <- range(c(blossom$count.alaska, blossom$count.canada))
+plot(count.alaska ~ year,dat = blossom, type='l', ylim = y.rng, pch=20, lwd = 2, col='red', ylab = "No. flower blossoming") 
+lines(count.canada ~ year, dat = blossom, type='b', lty = 5, lwd = 1, col='blue')
+```
+
+#### Establishing new plot from stratch (null)
+```{r, echo=TRUE}
+iris.ver<- subset(iris, Species == "versicolor")
+iris.vir<- subset(iris, Species == "virginica")
+
+y.rng <- range( c(iris.ver$Petal.Length, iris.vir$Petal.Length) , na.rm = TRUE) 
+x.rng <- range( c(iris.ver$Petal.Width, iris.vir$Petal.Width) , na.rm = TRUE) 
+
+# Plot an empty plot
+
+plot(Petal.Length ~ Petal.Width, dat = iris.ver,
+     xlab = 'Petal width (cm)', 
+     ylab = 'Petal length (cm)', 
+     main = 'Petal width and length of iris flower',
+     cex.axis=1.0, cex.lab=1.5, cex.main=1.5, type='n',
+     xlim=x.rng,  ylim=y.rng)
+
+# Add points for versicolor
+points(Petal.Length ~ Petal.Width, dat = iris.ver, pch = 20,cex=2, col = rgb(0,0,1,0.10))
+       
+# Add points for versicolor
+points(Petal.Length ~ Petal.Width, dat = iris.vir, pch = 20,cex=2, 
+      col =  scales::alpha('#fc03c6', 0.2))
+
+# Add legend
+legend("topleft", c("versicolor", "virginica"), pch = 19, cex=1.2,
+       col = c(rgb(0,0,1,0.10), scales::alpha('#fc03c6', 0.2)))
+```
+
+
+
