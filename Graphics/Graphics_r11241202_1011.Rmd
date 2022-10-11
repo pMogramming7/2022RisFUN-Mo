@@ -3,6 +3,8 @@ title: "Mo graphics"
 author: "Mo Chen"
 date: "2022-10-11"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
