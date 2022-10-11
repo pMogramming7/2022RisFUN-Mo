@@ -391,7 +391,7 @@ raw</code></pre>
 ## 4 subjcet_4          77         75
 ## 5 subjcet_5         112        118</code></pre>
 <pre class="r"><code>data.long &lt;-  raw %&gt;% pivot_longer(!sub, names_to = &quot;time&quot;, values_to = &quot;weight&quot;)
-
+data.long$time &lt;- as.factor(data.long$time)
 list.1 &lt;-list(A = raw, B = data.long)
 list.1</code></pre>
 <pre><code>## $A
@@ -405,7 +405,7 @@ list.1</code></pre>
 ## $B
 ## # A tibble: 10 × 3
 ##    sub       time        weight
-##    &lt;chr&gt;     &lt;chr&gt;        &lt;dbl&gt;
+##    &lt;chr&gt;     &lt;fct&gt;        &lt;dbl&gt;
 ##  1 subject_1 before_diet    104
 ##  2 subject_1 after_diet      96
 ##  3 subjcet_2 before_diet     95
@@ -416,6 +416,16 @@ list.1</code></pre>
 ##  8 subjcet_4 after_diet      75
 ##  9 subjcet_5 before_diet    112
 ## 10 subjcet_5 after_diet     118</code></pre>
+<pre class="r"><code>str(list.1)</code></pre>
+<pre><code>## List of 2
+##  $ A:&#39;data.frame&#39;:   5 obs. of  3 variables:
+##   ..$ sub        : chr [1:5] &quot;subject_1&quot; &quot;subjcet_2&quot; &quot;subjcet_3&quot; &quot;subjcet_4&quot; ...
+##   ..$ before_diet: num [1:5] 104 95 87 77 112
+##   ..$ after_diet : num [1:5] 96 91 81 75 118
+##  $ B: tibble [10 × 3] (S3: tbl_df/tbl/data.frame)
+##   ..$ sub   : chr [1:10] &quot;subject_1&quot; &quot;subject_1&quot; &quot;subjcet_2&quot; &quot;subjcet_2&quot; ...
+##   ..$ time  : Factor w/ 2 levels &quot;after_diet&quot;,&quot;before_diet&quot;: 2 1 2 1 2 1 2 1 2 1
+##   ..$ weight: num [1:10] 104 96 95 91 87 81 77 75 112 118</code></pre>
 <pre class="r"><code>percentage &lt;- (raw$after_diet-raw$before_diet)/raw$before_diet*100
 weight.loss &lt;- data.frame(subjcet= raw$sub, percentage = percentage)
 weight.loss</code></pre>
@@ -442,9 +452,34 @@ WEIGHT_LOSS</code></pre>
 ## 3 subjcet_3  -6.896552
 ## 4 subjcet_4  -2.597403
 ## 5 subjcet_5   5.357143</code></pre>
-<pre class="r"><code>list.2. &lt;- list(WEIGHT_LOSS = WEIGHT_LOSS, fun = how_enjoy_do_I)
+<pre class="r"><code>list.2. &lt;- list(list.1 = list.1, WEIGHT_LOSS = WEIGHT_LOSS, fun = how_enjoy_do_I)
 list.2.</code></pre>
-<pre><code>## $WEIGHT_LOSS
+<pre><code>## $list.1
+## $list.1$A
+##         sub before_diet after_diet
+## 1 subject_1         104         96
+## 2 subjcet_2          95         91
+## 3 subjcet_3          87         81
+## 4 subjcet_4          77         75
+## 5 subjcet_5         112        118
+## 
+## $list.1$B
+## # A tibble: 10 × 3
+##    sub       time        weight
+##    &lt;chr&gt;     &lt;fct&gt;        &lt;dbl&gt;
+##  1 subject_1 before_diet    104
+##  2 subject_1 after_diet      96
+##  3 subjcet_2 before_diet     95
+##  4 subjcet_2 after_diet      91
+##  5 subjcet_3 before_diet     87
+##  6 subjcet_3 after_diet      81
+##  7 subjcet_4 before_diet     77
+##  8 subjcet_4 after_diet      75
+##  9 subjcet_5 before_diet    112
+## 10 subjcet_5 after_diet     118
+## 
+## 
+## $WEIGHT_LOSS
 ## $WEIGHT_LOSS$subject
 ## [1] &quot;subject_1&quot; &quot;subjcet_2&quot; &quot;subjcet_3&quot; &quot;subjcet_4&quot; &quot;subjcet_5&quot;
 ## 
@@ -462,6 +497,24 @@ list.2.</code></pre>
 ## 
 ## $fun
 ## [1] &quot;quiet_enjoy&quot;</code></pre>
+<pre class="r"><code>str(list.2.)</code></pre>
+<pre><code>## List of 3
+##  $ list.1     :List of 2
+##   ..$ A:&#39;data.frame&#39;:    5 obs. of  3 variables:
+##   .. ..$ sub        : chr [1:5] &quot;subject_1&quot; &quot;subjcet_2&quot; &quot;subjcet_3&quot; &quot;subjcet_4&quot; ...
+##   .. ..$ before_diet: num [1:5] 104 95 87 77 112
+##   .. ..$ after_diet : num [1:5] 96 91 81 75 118
+##   ..$ B: tibble [10 × 3] (S3: tbl_df/tbl/data.frame)
+##   .. ..$ sub   : chr [1:10] &quot;subject_1&quot; &quot;subject_1&quot; &quot;subjcet_2&quot; &quot;subjcet_2&quot; ...
+##   .. ..$ time  : Factor w/ 2 levels &quot;after_diet&quot;,&quot;before_diet&quot;: 2 1 2 1 2 1 2 1 2 1
+##   .. ..$ weight: num [1:10] 104 96 95 91 87 81 77 75 112 118
+##  $ WEIGHT_LOSS:List of 3
+##   ..$ subject    : chr [1:5] &quot;subject_1&quot; &quot;subjcet_2&quot; &quot;subjcet_3&quot; &quot;subjcet_4&quot; ...
+##   ..$ weight_loss: num [1:5] -7.69 -4.21 -6.9 -2.6 5.36
+##   ..$ weight.loss:&#39;data.frame&#39;:  5 obs. of  2 variables:
+##   .. ..$ subjcet   : chr [1:5] &quot;subject_1&quot; &quot;subjcet_2&quot; &quot;subjcet_3&quot; &quot;subjcet_4&quot; ...
+##   .. ..$ percentage: num [1:5] -7.69 -4.21 -6.9 -2.6 5.36
+##  $ fun        : chr &quot;quiet_enjoy&quot;</code></pre>
 
 
 

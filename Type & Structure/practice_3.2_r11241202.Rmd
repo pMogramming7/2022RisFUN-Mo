@@ -18,9 +18,10 @@ raw <- data.frame(
 
 raw
 data.long <-  raw %>% pivot_longer(!sub, names_to = "time", values_to = "weight")
-
+data.long$time <- as.factor(data.long$time)
 list.1 <-list(A = raw, B = data.long)
 list.1
+str(list.1)
 
 percentage <- (raw$after_diet-raw$before_diet)/raw$before_diet*100
 weight.loss <- data.frame(subjcet= raw$sub, percentage = percentage)
@@ -30,8 +31,9 @@ how_enjoy_do_I <- c("quiet_enjoy")
 WEIGHT_LOSS <- list(subject = raw$sub, weight_loss = percentage, weight.loss = weight.loss)
 WEIGHT_LOSS
 
-list.2. <- list(WEIGHT_LOSS = WEIGHT_LOSS, fun = how_enjoy_do_I)
+list.2. <- list(list.1 = list.1, WEIGHT_LOSS = WEIGHT_LOSS, fun = how_enjoy_do_I)
 list.2.
+str(list.2.)
 
 ```
 
