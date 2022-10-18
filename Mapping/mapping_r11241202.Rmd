@@ -6,13 +6,14 @@ output: html_document
 editor_options: 
   chunk_output_type: console
 ---
-
+#### Basic map
 ```{r setup, include=FALSE}
 library(maptools)
 data("wrld_simpl")
 plot(wrld_simpl,xlim=c(120,122),ylim=c(20,27),col='olivedrab3',bg='lightblue')
 ```
 
+#### Add elements to map
 ```{r, echo=TRUE}
 plot(wrld_simpl,xlim=c(115,128) ,ylim=c(19.5,27.5),col='#D2B48C',bg='lightblue') # TW map
 coords <- matrix(c(121.537290,120.265541, 25.021335, 22.626524),ncol=2) # NTU and SYS univ. 
@@ -26,6 +27,7 @@ text(121,24, 'TAIWAN', cex=1)
 
 * Coordinates of these two university are not in spatial coordinate format, which means it may run off while you change projection style of your map
 
+#### Fix position with coordinates
 ```{r, echo=TRUE}
 plot(wrld_simpl,xlim=c(-130,-60),ylim=c(45,80),col='#D2B48C',bg='lightblue')
 coords <- matrix(c(-110,-102,-102,-110,-110,60,60,49,49,60),ncol=2)
@@ -39,6 +41,7 @@ text(-114, 55, 'Saskatchewan', srt=90, cex=0.5)
 text(-114, 63, 'CANADA', cex=1)
 ```
 
+#### generate map from GADM data
 ```{r, echo=TRUE}
 library(raster)
 TWN1 <- getData('GADM', country="TWN", level=0) # data Taiwan
@@ -47,7 +50,11 @@ class(TWN1) # those datasets are SpatialPolygonsDataFrame
 par(mfrow = c(1, 2))
 plot(TWN1,axes=T,bg=colors()[431],col='grey')
 plot(JPN,axes=T,bg=colors()[431],col='grey')
-dev.off()
+```
+
+#### Zoom on map
+```{r, echo=TRUE}
+plot (TWN1, axes=T, xlim=c(121,122), ylim=c(24,25.5), bg=colors()[431],col='gray')
 ```
 
 ```{r, echo=TRUE}
@@ -82,6 +89,81 @@ maps::map.scale(x=120, y=25.4)
 
 ```
 
+#### ggplot2
 ```{r, echo=TRUE}
 library(tidyverse)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(sf)
+theme_set(theme_bw()) 
+world <- ne_countries(scale = "medium", returnclass = "sf")
+class(world)
+ggplot(data = world) +
+  geom_sf() +
+    coord_sf(expand = FALSE) +
+    xlab("Longitude") + ylab("Latitude") +
+    ggtitle("World map", subtitle = paste0("(", length(unique(world$name)), " countries)")) +
+  geom_sf(color = "black", fill = "lightgreen")
+dev.off()
 ```
+
+#### GBIF data
+```{r, echo=TRUE}
+library(rgbif)
+library(mapr)
+
+gbif.res <- occ_search(scientificName = "Urocissa caerulea", limit = 1200)
+
+map_ggplot(gbif.res) +
+  coord_sf(xlim = c(120, 123), ylim = c(21, 26), expand = FALSE)
+```
+
+### Bathymetric map with marmap
+```{r, echo=TRUE}
+library(marmap)
+# query
+TW.bathy <- getNOAA.bathy(lon1=118,lon2=124, lat1=21,lat2=26,resolution=1) # don't put too wide / resolution: 1 
+# define palette
+blues <- colorRampPalette(c("darkblue", "cyan"))
+greys <- colorRampPalette(c(grey(0.4),grey(0.99)))
+# make the plot, step: difine line where to exist (e.g. draw lines per 2000 meter between -6000 to -1000 meters)
+plot.bathy(TW.bathy,
+     image=T,
+     deepest.isobath=c(-6000,-120,-30,0),
+     shallowest.isobath=c(-1000,-60,0,0),
+     step=c(2000,60,30,0),
+     lwd=c(0.3,1,1,2),
+     lty=c(1,1,1,1),
+     col=c("grey","black","black","black"), 
+     drawlabels=c(T,T,T,F),
+     bpal = list(c(0,max(TW.bathy),greys(100)),c(min(TW.bathy),0,blues(100))),
+     land=T, xaxs="i"
+     )
+```
+
+#### Leaflet
+```{r, echo=TRUE}
+library(leaflet)
+library(rgdal)
+
+taiwan <- readOGR('D:/R_WD/Git linked/2022RisFUN-Mo/Mapping/mapdata202209220943/COUNTY_MOI_1090820.shp', use_iconv=TRUE, encoding='UTF-8')
+
+FRE <- paste(sep = "<br/>",
+  "<b><a href='https://www.dipintothereef.com/'>FRELAb TAIWAN</a></b>",
+  "Functional Reef Ecology Lab",
+  "Institute of Oceanography, NTU")
+
+# Change style by addtiles
+leaflet(taiwan) %>%
+  addPolygons(weight=0.5) %>%
+  addTiles(group="Kort") %>%
+  addPopups(121.53725, 25.021252, FRE, options = popupOptions(closeButton = FALSE))
+```
+
+
+
+
+
+
+
+
