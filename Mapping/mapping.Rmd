@@ -1,0 +1,575 @@
+---
+title: "Mapping"
+---
+
+```{r eval = TRUE,  message=F, include=F, warning=F, purl=F, results="hide"}
+knitr::purl('mapping.Rmd', documentation = F)
+```
+
+```{r echo=FALSE, purl=F}
+xfun::embed_file('mapping.Rmd')
+```
+
+```{r echo=FALSE, purl=F}
+xfun::embed_file('mapping.R')
+```
+
+Common solutions for creating maps usually involves geographic information system (GIS) software, such as *ArcGIS*, *QGIS*, *eSpatial*, etc., which allow to visually prepare a map in a very similar approach as one would prepare a poster or a document layout. On the other hand, R has also advanced spatial capabilities and can be used to draw maps. As we mentioned earlier for the graphics, R allows you to create map highly customization which makes it a solution increasingly attractive. In addition, the `leaflet` package now offers interesting solution to add some interactivity to your maps.    
+
+Several packages will be used today. It is generally a good practice to group the package you will use at the beginning of your script:
+
+```{r,  eval=T, message=F}
+library(maptools)
+library(rgdal)
+library (sp)
+library(raster)
+library(ggplot2)
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(ggspatial)
+library(rgbif)
+library(mapr)
+library(marmap)
+library(leaflet)
+
+#Sys.setlocale("LC_TIME", "English")
+#Sys.setlocale(category = "LC_ALL", "Chinese (Traditional)_Taiwan.950")
+```
+
+
+# Basic map 
+
+Getting a simple map is pretty straightforward in R using the package`maptools`
+
+- Simplified world country polygons
+
+```{r,  eval=T, message=F}
+data(wrld_simpl) 
+```
+
+- "Plot the world"
+
+```{r,  eval=T, message=F}
+plot(wrld_simpl)
+```
+
+We have now a couple of options to modify a plot. Therefore you can customize this simple map with a some arguments mentioned earlier:
+
+```{r,  eval=T}
+plot(wrld_simpl,xlim=c(100,130),ylim=c(-20,50),col='olivedrab3',bg='lightblue')
+```
+
+Try to zoom on Taiwan. Quickly, you will see obvious limit in this simple map. The resolution is too bad at at fine scale. See output of `str(wrld_simpl)` and `?wrld_simpl`.   
+
+
+# Shapes
+
+##  `gpx` track
+
+* reading
+
+If you like running, hiking, walking, or just being lazy in a park - many devices  can now export `gpx` format. You can read the file directly as lines (i.e, `tracks`), points (i.e, `track_points`), and a few other formats. Look at the help on `readOGR` function form the `rgdal` package: **Bindings for the 'Geospatial' Data Abstraction Library**. *Note that the same could be accomplished using the `sf` package and using the `st_read`function.*
+
+```{r,  eval=T,message=F, warning=F}
+par(mfrow=c(1,2))
+run1 <- readOGR(dsn="Data/run.gpx",layer="tracks")
+plot(run1, main='Line') # my running activity
+run2 <- readOGR(dsn="Data/run.gpx",layer="track_points")
+plot(run2, main='Points')
+dev.off()
+```
+
+Note the use of `par(mfrow=c(1,2))` to put the two plots next to each others.
+
+Those are spatial shapes. The line connects points recorded at given intervals. Resolution of the track will depend on the resolution of the records and your speed (being lazy actually increases the accuracy).  
+
+* writing
+
+
+The reverse can obviously be done. The function `writeOGR` exports objects as **SpatialPointsDataFrame**, **SpatialLinesDataFrame**, or **SpatialPolygonsDataFrame**  (as defined in the `sp` package). This **spatial** information is critical because you can imagine that many [projections](https://gisgeography.com/map-projections/) exist for those spatial objects. `writeOGR` will write a **shapefile** (ArcGIS compatible), but many other formats are available by specifying the correct driver. Let's look at how to export spatial data from the simple map created earlier.
+
+
+```{r,  eval=T,message=F, warning=F}
+writeOGR(wrld_simpl, dsn="Data", layer = "world_test", driver = "ESRI Shapefile", overwrite_layer = TRUE) 
+# ESRI Shapefile is default
+```
+
+##  `shp` files
+
+
+Now we could open `world_test.shp` in ArcGIS (or others), but we can also import shapefile (.shp) back into R. Let's read the .shp file previously created.
+
+```{r,  eval=T,message=F, warning=F}
+world_shp <- readOGR(dsn = "Data",layer = "world_test")
+plot(world_shp)
+```
+
+# Spatial data
+
+Creating spatial data from scratch in R seems a little bit confusing at first, but it is important to understand what is a spatial objects and how it works. 
+
+As we saw before when making a `plot`, you can add many layers (vector-based objects) on the plot created: points `points`, lines `lines`, or also polygons) to your map. A transformation of numerical x and y coordinates must however be applied in the case of a map in order to recognize those values as spatial data.
+
+
+- `SpatialPointsDataFrame` for plotting points
+
+```{r,  eval=T}
+plot(wrld_simpl,xlim=c(115,128) ,ylim=c(19.5,27.5),col='#D2B48C',bg='lightblue') # TW map
+coords <- matrix(c(121.537290,120.265541, 25.021335, 22.626524),ncol=2) # NTU and SYS univ. 
+coords <- coordinates(coords) # assign values as spatial coordinates
+spoints <- SpatialPoints(coords) # create SpatialPoints
+df <- data.frame(location=c("NTU","SYS")) # create a dataframe
+spointsdf <- SpatialPointsDataFrame(spoints,df) # create a SpatialPointsDataFrame
+plot(spointsdf,add=T,col=c('black','black'),pch=19,cex=2.2) # plot it on our map
+text(121,24, 'TAIWAN', cex=1)
+```
+
+> Note the use of the argument `add=T` in the second call of the function `plot`. It allows adding an element to a plot already opened.
+
+
+- `SpatialLinesDataFrame` for plotting lines: let's move to Canada where the provinces where drw with a ruler: an example with the province of Saskatchewan and following the same logic as ealier. 
+
+```{r,  eval=T}
+plot(wrld_simpl,xlim=c(-130,-60),ylim=c(45,80),col='#D2B48C',bg='lightblue')
+coords <- matrix(c(-110,-102,-102,-110,-110,60,60,49,49,60),ncol=2)
+l <- Line(coords)
+ls <- Lines(list(l),ID="1")
+sls <- SpatialLines(list(ls))
+df <- data.frame(province="Saskatchewan")
+sldf <- SpatialLinesDataFrame(sls,df)
+plot(sldf,add=T,col='#3d2402', cex=2)
+text(-114, 55, 'Saskatchewan', srt=90, cex=0.5)
+text(-114, 63, 'CANADA', cex=1)
+```
+
+- `SpatialPolygonesDataFrame` for plotting polygons instead of lines. It will help in **filling** the spatial shpae with a selected color or pattern. 
+
+```{r,  eval=T}
+plot(wrld_simpl,xlim=c(-130,-60),ylim=c(45,80),col='#D2B48C',bg='lightblue')
+coords <- matrix(c(-110,-102,-102,-110,-110,60,60,49,49,60),ncol=2)
+p <- Polygon(coords)
+ps <- Polygons(list(p),ID="1")
+sps <- SpatialPolygons(list(ps))
+df <- data.frame(province="Saskatchewan")
+spdf <- SpatialPolygonsDataFrame(sps,df)
+plot(spdf,add=T,col='#45220d') 
+text(-114, 55, 'Saskatchewan', srt=90, cex=0.7)
+text(-114, 63, 'CANADA', cex=1)
+text(-103, 46, 'UNITED STATES', cex=1)
+text(-40, 78, 'GREENLAND', cex=1)
+text(-35, 55, 'Atlantic Ocean', cex=1, col='#071238')
+```
+
+# `raster` 
+
+The package `raster` provides useful function to play with spatial: download, unzip, and import spatial shape (don't forget to set up your working directory). Those spatial data are high resolution spatial data at the country level. Have a look at  [What is raster data?](https://desktop.arcgis.com/en/arcmap/10.3/manage-data/raster-and-images/what-is-raster-data.htm) from the ArcGIS website.
+
+## GADM
+
+The function `getData` (`raster`package) can  download directly polygons (vectorized) shape from  **GADM** (Global Administrative Areas, or other sources). You will simply need a country code such as `TWN` for Taiwan, `JPN` for Japan, etc. In addition, the argument `level` indicates the level you are trying to get. For provinces (first level subdivision) `level=1`, for the overall country level `level=0`. Check `?getData`.
+
+<p style="color:red"> Be reasonable at first, you may experience some delays because of slow connection </p>
+
+ 
+```{r,  eval=T}
+TWN1 <- getData('GADM', country="TWN", level=0) # data Taiwan
+JPN <- getData('GADM', country="JPN", level=0) # data Japan
+class(TWN1) # those datasets are SpatialPolygonsDataFrame
+par(mfrow = c(1, 2))
+plot(TWN1,axes=T,bg=colors()[431],col='grey')
+plot(JPN,axes=T,bg=colors()[431],col='grey')
+```
+
+Don't forget to close your graphical window:
+
+```{r,  eval=T}
+dev.off()
+```
+
++ zoom on a point a map
+
+Simply set up `xlim` and `ylim`
+
+```{r,  eval=T}
+plot (TWN1, axes=T, xlim=c(121,122), ylim=c(24,25.5), bg=colors()[431],col='grey') 
+```
+
++ Level
+
+```{r,  eval=T}
+TWN2 <- getData('GADM', country="TWN", level=1)
+TWN2$NAME_1
+```
+
+You can see the list of counties is not complete. It is often  the case when using GADM that some 'details' are  missing. Let's visualize one county for which shape data are available.
+
+```{r,  eval=T}
+plot(TWN1,col="grey",xlim=c(119,122.5), ylim=c(21.5,25.5), bg=colors()[431], axes=T)
+KAO <- TWN2[TWN2$NAME_1=="Kaohsiung",]
+plot(KAO,col="grey 33",add=TRUE)
+```
+
+Note again the use of `add=TRUE` in the latest `plot` function.
+
++ A map can further be customized by combining all seen earlier (e.g. adding population)
+
+```{r,  eval=T}
+# base map
+plot(TWN1,col="grey",xlim=c(121,122), ylim=c(24,25.5), bg=colors()[431], axes=T)
+# adding  spatial polygones 
+TAI <- TWN2[TWN2$NAME_1=="Taipei" | TWN2$NAME_1=="New Taipei" ,]
+plot(TAI,col="black",add=TRUE)
+# adding spatial points 
+coords <- matrix(cbind(lon=c(121.2,121.55,121.8),lat=c(25,25.19,24.5)),ncol=2)
+coords <- coordinates(coords)
+spoints <- SpatialPoints(coords)
+df <- data.frame(location=c("City 1","City 2","City 3"),pop=c(138644,390095,34562))
+spointsdf <- SpatialPointsDataFrame(spoints,df)
+scalefactor <- sqrt(spointsdf$pop)/sqrt(max(spointsdf$pop))
+plot(spointsdf,add=TRUE,col='white',pch=1,cex=scalefactor*3,lwd=2) 
+# adding a location of NTU (not spatial point here)
+points(121.537290,25.021335, type="p", pch=18, col='white', cex=1.5)
+# adding text
+text(121.53,24.921335,"NTU", col='white', font=2)
+# adding scale
+maps::map.scale(x=120, y=25.4)
+# adding north arrow
+GISTools::north.arrow(xb=120.3,yb=24.7, len=0.06, lab='N')
+```
+
+Note the use of the synthax `maps::map.scale`. It means you wanna use the function `map.scale` from the package `maps`. It avoid passing by `library(maps)`, thus avoiding possible conflict among functions.
+
+## Country data
+
+Each country will usually have open data platform with country shape data. Those data are usually more accurate and should be preferred. In Taiwan, shapefile of counties are available for download [here](https://data.gov.tw/dataset/7442). You could get even get a finer resolution at the township level if you wish (large file). 
+
+First, prepare your system to receive traditional Chinese characters if like mine your system is not set to accept them. Actually, those steps have no relationship with making a map however to deal with special characters is a common issue you may experience when "mapping around". 
+
+```{r,  eval=T}
+Sys.setlocale(category = "LC_ALL", "Chinese (Traditional)_Taiwan.950")
+sessionInfo()
+```
+
+You can go then to the website and download data locally. Alternatively, using the code source of the page your can target directly the `url` of the data set you want to download (I failed many time before identifyinng the right link). This is a zip file that you want to temporary store using `tempfile` and immediately extract it in a designated directory. Again here, nothing about mapping but you have a look on the details of the code below. 
+
+```{r,  eval=T}
+url <- 'https://data.moi.gov.tw/MoiOD/System/DownloadFile.aspx?DATA=72874C55-884D-4CEA-B7D6-F60B0BE85AB0'
+path1 <- tempfile(fileext = ".zip")
+if (file.exists(path1))  'file alredy exists' else download.file(url, path1, mode="wb")
+zip::unzip(zipfile = path1,exdir = 'Data')
+```
+
+
+The function `readOGR` reads the .shp file. Other arguments are for the file encoding and to deal with the Chinese characters because my system is in English. 
+
+
+```{r,  eval=T}
+taiwan <- readOGR('Data/COUNTY_MOI_1090820.shp', use_iconv=TRUE, encoding='UTF-8')
+```
+
+Make the plot:
+
+```{r,  eval=T}
+plot(taiwan,axes=T,bg=colors()[431],col='grey')
+```
+
+This is a map of TAIWAN using official data from the government. It includes all remote territories such as Taiping  and Diaoyutai islands. County names are here accessible using: 
+
+```{r,  eval=T}
+taiwan$COUNTYNAME
+taiwan$COUNTYENG 
+```
+
+# `ggplot2` & `sf`
+
+As we mentioned earlier, the package `ggplot2` implements the grammar of graphics in R. While `ggplot2` is becoming the standard for R graphs, it does not handle spatial data specifically. The current state-of-the-art of spatial objects in R relies on Spatial classes defined in the package `sp`, but the new package `sf` has  implemented the “simple feature” standard, and is steadily taking over `sp`. Relatively recently, the package `ggplot2` has allowed the use of simple features from the package `sf` as layers in a graph (since the version 3.0.0 of `ggplot2`). The combination of `ggplot2` and `sf` therefore enables to programmatically create maps, using the grammar of graphics, just as informative or visually appealing as traditional GIS software.
+
+
+Note that the conversion from `sp` to `sf` is achievable using the function `st_as_sf` from the package `sf`.
+
+```{r,  eval=T}
+# not run
+# wrld_simpl <- st_as_sf(wrld_simpl)
+```
+
+## Theme and datasets
+
+After loading the basic packages necessary for all maps, i.e. `ggplot2` and `sf`. We can change the theme of our plot. The classic dark-on-light theme for `ggplot2` (`theme_bw`) is appropriate for maps (default: `theme_grey()`):
+
+```{r,  eval=T}
+theme_set(theme_bw()) 
+```
+
+The package `rnaturalearth` provides a map of countries of the entire world. Use `ne_countries` to pull country data and choose the scale (`rnaturalearthhires` is necessary for `scale = "large"`). The function can return `sp` classes (default) or directly `sf` classes, as defined in the argument `returnclass`:
+
+```{r,  eval=T}
+world <- ne_countries(scale = "medium", returnclass = "sf")
+class(world)
+```
+
+In addition to country shape polygones, this dataset contains information on the **population** in every country.
+
+
+## A ggplot  map 
+
+First, let us start with creating a base map of the world using `ggplot2`. This base map will then be extended with different map elements, as well as zoomed in to an area of interest. We can check that the world map was properly retrieved and converted into an `sf` object, and plot it with `ggplot2`. This time we will indicate that the geometry of our plot is constrained by a `sf` object: 
+
+```{r,  eval=T}
+ggplot(data = world) +
+   geom_sf()
+```
+
+In your map of the world, the plot panel is expanded beyond the size of the earth (you can see that the graticule lines end before the edge of the plot panel), and hence no axis ticks are drawn. One way to solve the issue is to turn off the expansion while defining the coordinates.
+
+```{r,  eval=T}
+ggplot(data = world) +
+   geom_sf() +
+   coord_sf(expand = FALSE)
+```
+
+As before, the  layers are added one at a time in a `ggplot` call, so the order of each layer is very important. All data will have to be in an `sf` format to be used by `ggplot2`; data in other formats (e.g. classes from `sp`) will be manually converted to `sf` classes if necessary.
+
++ Title, subtitle, and axis labels using `ggtitle`, `xlab`, `ylab`
+
+A title and a subtitle can be added to the map using the function `ggtitle`, passing any valid character string (e.g. with quotation marks) as arguments. Axis names are absent by default on a map, but can be changed to something more suitable (e.g. “Longitude” and “Latitude”), depending on the map:
+
+```{r,  eval=T}
+ggplot(data = world) +
+    geom_sf() +
+    coord_sf(expand = FALSE) +
+    xlab("Longitude") + ylab("Latitude") +
+    ggtitle("World map", subtitle = paste0("(", length(unique(world$name)), " countries)"))
+```
+
++ Map color in `geom_sf`
+
+In many ways, `sf` geometries are no different than regular geometries, and can be displayed with the same level of control on their attributes. Here is an example with the polygons of the countries filled with a green color (argument `fill`), using black for the outline of the countries (argument `color`):
+
+```{r,  eval=T}
+ggplot(data = world) + 
+    geom_sf(color = "black", fill = "lightgreen") +
+    coord_sf(expand = FALSE) 
+```
+
+The package `ggplot2` allows the use of more complex color schemes, such as a gradient on one variable of the data. Here is another example that shows the population of each country. In this example, we use the "viridis” colorblind-friendly palette for the color gradient (with `option = "magma"` for the magma variant), using the square root of the population (which is stored in the variable `POP_EST` of the `world` object):
+
+```{r,  eval=T}
+ggplot(data = world) +
+    geom_sf(aes(fill = pop_est)) +
+    coord_sf(expand = FALSE) +
+    scale_fill_viridis_c(option = "plasma", trans = "sqrt") # sqrt transform
+```
+
+- Projection and extend (`coord_sf`)
+
+The function `coord_sf` allows to deal with the coordinate system, which includes both **projection** and **extent of the map**. By default, the map will use the coordinate system of the first layer that defines one (i.e. scanned in the order provided), or if none, fall back on WGS84 (latitude/longitude, the reference system used in GPS). Using the argument `crs`, it is possible to override this setting, and project on the fly to any projection. This can be achieved using any valid PROJ4 string (here, the European-centric ETRS89 Lambert Azimuthal Equal-Area projection):
+
+
+```{r,  eval=T}
+ggplot(data = world) +
+    geom_sf() +
+    scale_fill_viridis_c(option = "plasma", trans = "sqrt") +
+    coord_sf(crs = "+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs ")
+```
+
+Spatial Reference System Identifier (SRID) or an European Petroleum Survey Group (EPSG) code are available for the projection of interest, they can be used directly instead of the full PROJ4 string. The two following calls are equivalent for the ETRS89 Lambert Azimuthal Equal-Area projection, which is EPSG code 3035:
+
+```{r,  eval=F}
+ggplot(data = world) +
+    geom_sf() +
+    coord_sf(crs = "+init=epsg:3035")
+
+# OR
+
+ggplot(data = world) +
+    geom_sf() +
+    coord_sf(crs = st_crs(3035))
+```
+
+
+The extent of the map can also be set in `coord_sf`, in practice allowing to “zoom” in the area of interest, provided by limits on the x-axis (`xlim`), and on the y-axis (`ylim`). Note that the limits are automatically expanded by a fraction to ensure that data and axes don’t overlap; it can also be turned off to exactly match the limits provided with `expand = FALSE`:
+
+```{r,  eval=T}
+ggplot(data = world) +
+    geom_sf(aes(fill = pop_est)) +
+    coord_sf(xlim = c(118, 128), ylim = c(17, 27), expand = FALSE) +
+    scale_fill_viridis_c(option = "plasma") # linear scale
+```
+
+## `ggspatial` elements 
+
+
++ Scale bar and North arrow
+
+Several packages are available to create a scale bar on a map (e.g. `prettymapr`, `vcd`, `ggsn`, or `legendMap`). Here the package `ggspatial` provides easy-to-use functions. `scale_bar` that allows to add simultaneously the north symbol and a scale bar into the `ggplot` map. Five arguments need to be set manually: `lon`, `lat`, `distance_lon`, `distance_lat`, and `distance_legend`. The location of the scale bar has to be specified in longitude/latitude in the `lon` and `lat` arguments. The shaded distance inside the scale bar is controlled by the `distance_lon` argument while its width is determined by `distance_lat`. Additionally, it is possible to change the font size for the legend of the scale bar (argument `legend_size`, which defaults to 3). The North arrow behind the “N” north symbol can also be adjusted for its length (`arrow_length`), its distance to the scale (`arrow_distance`), or the size the N north symbol itself (`arrow_north_size`, which defaults to 6). Note that all distances (`distance_lon`, `distance_lat`, `distance_legend`, `arrow_length`, `arrow_distance`) are set to `"km"` by default in `distance_unit`; they can also be set to nautical miles with `“nm”`, or miles with `“mi”`.
+
+```{r,  eval=T}
+ggplot(data = world) +
+    geom_sf(aes(fill = pop_est)) +
+    coord_sf(xlim = c(118, 128), ylim = c(17, 27), expand = FALSE) +
+    scale_fill_viridis_c(option = "plasma") +
+    annotation_scale(location = "br", width_hint = 0.3) +
+    annotation_north_arrow(location = "br", which_north = "true", 
+        pad_x = unit(0.5, "cm"), pad_y = unit(1, "cm"),
+        style = north_arrow_fancy_orienteering) 
+```
+
+**Note**: if you plot a larger area, you may get a warning on the inaccuracy of the scale bar.
+
++ Country names and other names (`geom_text` and `annotate`)
+
+The `world` data set already contains country names and the coordinates of the centroid of each country (among more information). We can use this information to plot country names, using `world` as a regular `data.frame` in `ggplot2`. The function `geom_text` can be used to add a layer of text to a map using geographic coordinates. The function requires the data needed to enter the country names, which is the same data as the world map. Again, we have a very flexible control to adjust the text at will on many aspects:
+
+   + The size (argument `size`);
+   
+   + The alignment, which is centered by default on the coordinates provided. The text can be adjusted horizontally or vertically using the arguments `hjust` and `vjust`, which can either be a number between 0 (right/bottom) and 1 (top/left) or a character (“left”, “middle”, “right”, “bottom”, “center”, “top”). The text can also be offset horizontally or vertically with the argument `nudge_x` and `nudge_y`;
+   
+   + The font of the text, for instance its color (argument `color`) or the type of font (`fontface`);
+   
+   + The overlap of labels, using the argument `check_overlap`, which removes overlapping text. Alternatively, when there is a lot of overlapping labels, the package `ggrepel` provides a `geom_text_repel` function that moves label around so that they do not overlap.
+   
+   + For the text labels, we are defining the centroid of the countries with `st_centroid`, from the package `sf`. Then we combined the coordinates with the centroid, in the `geometry` of the spatial data frame. The package `sf` is necessary for the command `st_centroid`.
+   
+Additionally, the `annotate` function can be used to add a single character string at a specific location, as demonstrated here to add the "Gulf of Mexico"Pacific Ocean" and Ryukyu Archipelago
+
+```{r,  eval=T}
+sf::sf_use_s2(FALSE) # FOR ERROR turn off the s2 processing
+world_points<- st_centroid(world)
+world_points <- cbind(world, st_coordinates(st_centroid(world$geometry)))
+
+ggplot(data = world) +
+geom_sf(aes(fill = pop_est)) +
+geom_text(data= world_points,aes(x=X, y=Y, label=name),
+    color = "grey", fontface = "bold", check_overlap = FALSE) +
+    scale_fill_viridis_c(option = "plasma") +
+    annotate(geom = "text", x = 124, y = 21, label = "Pacific Ocean", fontface = "italic", color = "#0b3c8a", size = 5) +
+   annotate(geom = "text", x = 124.2, y = 24, label = "Ryukyu archipelago", fontface = "italic", color = "#d41919", size = 3) + 
+   coord_sf(xlim = c(118, 128), ylim = c(17, 27), expand = FALSE)
+```
+
+## To goo further: Finalization
+
+Now to make the final touches, the theme of the map can be edited to make it more appealing. We suggested the use of `theme_bw` for a standard theme, but there are many other themes that can be selected from (see for instance `?ggtheme` in `ggplot2`, or the package `ggthemes` which provide several useful themes). Moreover, specific theme elements can be tweaked to get to the final outcome:
+
+- Position of the legend: Although not used in this example, the argument `legend.position` allows to automatically place the legend at a specific location (e.g. "topright", "bottomleft", etc.);
+
+- Grid lines (graticules) on the map: by using `panel.grid.major` and `panel.grid.minor`, grid lines can be adjusted. Here we set them to a gray color and dashed line type to clearly distinguish them from country borders lines;
+
+- Map background: the argument `panel.background` can be used to color the background, which is the ocean essentially, with a light blue;
+Many more elements of a theme can be adjusted, which would be too long to cover here. We refer the reader to the documentation for the function `theme`.
+
+```{r,  eval=T}
+ggplot(data = world) +
+   geom_sf(fill= 'antiquewhite') + 
+   geom_text(data= world_points,aes(x=X, y=Y, label=name), color = 'darkblue', fontface = 'bold', check_overlap = FALSE) + 
+   annotate(geom = 'text', x = -90, y = 26, label = 'Gulf of Mexico', fontface = 'italic', color = 'grey22', size = 6) +
+   annotation_scale(location = 'bl', width_hint = 0.5) + 
+   annotation_north_arrow(location = 'bl', which_north = 'true', pad_x = unit(0.75, 'in'), pad_y = unit(0.5, 'in'), style = north_arrow_fancy_orienteering) + 
+   coord_sf(xlim = c(-102.15, -74.12), ylim = c(7.65, 33.97), expand = FALSE) + 
+   xlab('Longitude') + ylab('Latitude') + 
+   ggtitle('Map of the Gulf of Mexico and the Caribbean Sea') + 
+   theme(panel.grid.major = element_line(color = gray(.5), linetype = 'dashed', size = 0.5), panel.background = element_rect(fill = 'aliceblue'))
+```
+
+## Exporting map
+
+The final map is now ready, it is very easy to save it using ggsave. This function allows a graphic (typically the last plot displayed) to be saved in a variety of formats, including the most common PNG (raster bitmap) and PDF (vector graphics), with control over the size and resolution of the outcome. For instance here, we save a PDF version of the map, which keeps the best quality, and a PNG version of it for web purposes:
+
+```{r,  eval=T}
+ggsave("Figures/Datamap.pdf")
+ggsave("Figures/map_web.png", width = 6, height = 6, dpi = "screen")
+```
+
+# Special
+
+## Species distribution `rgbif`
+
+Import Global Biodiversity Information Facility ([GBIF](https://www.gbif.org/)) data using `rgbif` package and crete distribution map using the `mapr` package.
+
+```{r,  eval=T}
+gbif.res <- occ_search(scientificName = "Urocissa caerulea", limit = 1200)
+
+map_ggplot(gbif.res) +
+  coord_sf(xlim = c(120, 123), ylim = c(21, 26), expand = FALSE)
+
+```
+
+Note the slight difference in overlap of the distribution data on this shape file. To date, I could not figure out the problem here.
+
+Have a look [here](https://damariszurell.github.io/HU-GCIB/1_Data.html#2_environmental_data), to combine climate and species data. 
+
+## Bathymetric map with  `marmap`
+
+`marmap` can query and plot NOAA's bathymetry database
+
+```{r,  eval=T}
+# query
+TW.bathy <- getNOAA.bathy(lon1=118,lon2=124, lat1=21,lat2=26,resolution=1) # don't put too wide / resolution: 1 
+# define palette
+blues <- colorRampPalette(c("darkblue", "cyan"))
+greys <- colorRampPalette(c(grey(0.4),grey(0.99)))
+# make the plot
+plot.bathy(TW.bathy,
+     image=T,
+     deepest.isobath=c(-6000,-120,-30,0),
+     shallowest.isobath=c(-1000,-60,0,0),
+     step=c(2000,60,30,0),
+     lwd=c(0.3,1,1,2),
+     lty=c(1,1,1,1),
+     col=c("grey","black","black","black"), 
+     drawlabels=c(T,T,T,F),
+     bpal = list(c(0,max(TW.bathy),greys(100)),c(min(TW.bathy),0,blues(100))),
+     land=T, xaxs="i"
+     )
+```
+
+Profiles can be extract using `get.transect`:
+
+```{r,  eval=T}
+tw.profile <-get.transect(TW.bathy,x1=119.5,y1=23.75, x2=122,y2=23.75, dis=TRUE)
+plotProfile(tw.profile) 
+#### Not Run: extract a profile Manually
+#### manual.profile<-get.transect (TW.bathy, loc=T,dist=T) 
+#### plotProfile(manual.profile)
+```
+
+## Interactive maps
+
+[Leaflet](https://rstudio.github.io/leaflet/) is one of the most popular open-source JavaScript libraries for interactive maps. You can loose hours and its functionalities are amazing. The R package `leaflet` makes it easy to integrate and control Leaflet maps in R. 
+
+<style>
+.html-widget {
+    margin: auto;
+}
+</style>
+
+
+```{r,  eval=T}
+FRE <- paste(sep = "<br/>",
+  "<b><a href='https://www.dipintothereef.com/'>FRELAb TAIWAN</a></b>",
+  "Functional Reef Ecology Lab",
+  "Institute of Oceanography, NTU")
+
+
+leaflet(taiwan) %>%
+  addPolygons(weight=0.5) %>%
+  addTiles(group="Kort") %>%
+  addPopups(121.53725, 25.021252, FRE, options = popupOptions(closeButton = FALSE))
+  
+```
+
+
+## Combo maps
+
+Interactive X GBIF ?
+
+See: https://poldham.github.io/abs/mapgbif.html & https://data-blog.gbif.org/post/gbif-maps-api-using-r-and-leaflet/ among many many other onlin resources
+
+
+<br>
+
+
+<p class="alert">
+**`r knitr::asis_output("\U26A0")` Practice 5.1** Create and customize an interactive map of your choice after exploring the functionality of the `leaflet` package. Make it obvious it is your map and not something you copy online by highlighting points of interest. Push both your *.Rmd* and *.html* files into a public repository available from your Github account.You will share with me be email [vianneydenis@g.ntu.edu.tw] the address (URL) of this repository (such as https://github.com/vianneydenis/OCEAN5098.git) **before next Monday** in order for me to check your work. The **title of your email ** should be `Practice 5.1 (your name: your student no.). BE CREATIVE ;)
+</p>

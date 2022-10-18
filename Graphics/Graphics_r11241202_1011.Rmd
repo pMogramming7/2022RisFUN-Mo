@@ -120,6 +120,8 @@ points(Petal.Length ~ Petal.Width, dat = iris.vir, pch = 20,cex=2,
 # Add legend
 legend("topleft", c("versicolor", "virginica"), pch = 19, cex=1.2,
        col = c(rgb(0,0,1,0.10), scales::alpha('#fc03c6', 0.2)))
+# finish edit the current plot
+dev.off()
 ```
 
 

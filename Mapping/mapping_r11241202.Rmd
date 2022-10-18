@@ -1,0 +1,87 @@
+---
+title: "Mapping"
+author: "Mo Chen"
+date: "2022-10-18"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+library(maptools)
+data("wrld_simpl")
+plot(wrld_simpl,xlim=c(120,122),ylim=c(20,27),col='olivedrab3',bg='lightblue')
+```
+
+```{r, echo=TRUE}
+plot(wrld_simpl,xlim=c(115,128) ,ylim=c(19.5,27.5),col='#D2B48C',bg='lightblue') # TW map
+coords <- matrix(c(121.537290,120.265541, 25.021335, 22.626524),ncol=2) # NTU and SYS univ. 
+coords <- coordinates(coords) # assign values as spatial coordinates
+spoints <- SpatialPoints(coords) # create SpatialPoints
+df <- data.frame(location=c("NTU","SYS")) # create a dataframe
+spointsdf <- SpatialPointsDataFrame(spoints,df) # create a SpatialPointsDataFrame
+plot(spointsdf,add=T,col=c('white','red'),pch=19,cex=0.5) # plot it on our map
+text(121,24, 'TAIWAN', cex=1)
+```
+
+* Coordinates of these two university are not in spatial coordinate format, which means it may run off while you change projection style of your map
+
+```{r, echo=TRUE}
+plot(wrld_simpl,xlim=c(-130,-60),ylim=c(45,80),col='#D2B48C',bg='lightblue')
+coords <- matrix(c(-110,-102,-102,-110,-110,60,60,49,49,60),ncol=2)
+l <- Line(coords)
+ls <- Lines(list(l),ID="1")
+sls <- SpatialLines(list(ls))
+df <- data.frame(province="Saskatchewan") #create an empty dataframe to put lines into it.
+sldf <- SpatialLinesDataFrame(sls,df)
+plot(sldf,add=T,col='#3d2402', cex=2)
+text(-114, 55, 'Saskatchewan', srt=90, cex=0.5)
+text(-114, 63, 'CANADA', cex=1)
+```
+
+```{r, echo=TRUE}
+library(raster)
+TWN1 <- getData('GADM', country="TWN", level=0) # data Taiwan
+JPN <- getData('GADM', country="JPN", level=0) # data Japan
+class(TWN1) # those datasets are SpatialPolygonsDataFrame
+par(mfrow = c(1, 2))
+plot(TWN1,axes=T,bg=colors()[431],col='grey')
+plot(JPN,axes=T,bg=colors()[431],col='grey')
+dev.off()
+```
+
+```{r, echo=TRUE}
+plot (TWN1, axes=T, xlim=c(121,122), ylim=c(24,25.5), bg=colors()[431],col='grey') 
+TWN2 <- getData('GADM', country="TWN", level=1)
+TWN2$NAME_1
+plot(TWN1,col="grey",xlim=c(119,122.5), ylim=c(21.5,25.5), bg=colors()[431], axes=T)
+KAO <- TWN2[TWN2$NAME_1=="Kaohsiung",]
+plot(KAO,col="grey 33",add=TRUE)
+```
+
+```{r, echo=TRUE}
+# base map
+plot(TWN1,col="grey",xlim=c(121,122), ylim=c(24,25.5), bg=colors()[431], axes=T)
+# adding  spatial polygones 
+TAI <- TWN2[TWN2$NAME_1=="Taipei" | TWN2$NAME_1=="New Taipei" ,]
+plot(TAI,col="black",add=TRUE)
+# adding spatial points 
+coords <- matrix(cbind(lon=c(121.2,121.55,121.8),lat=c(25,25.19,24.5)),ncol=2)
+coords <- coordinates(coords)
+spoints <- SpatialPoints(coords)
+df <- data.frame(location=c("City 1","City 2","City 3"),pop=c(138644,390095,34562))
+spointsdf <- SpatialPointsDataFrame(spoints,df)
+scalefactor <- sqrt(spointsdf$pop)/sqrt(max(spointsdf$pop))
+plot(spointsdf,add=TRUE,col='white',pch=1,cex=scalefactor*3,lwd=2) 
+# adding a location of NTU (not spatial point here)
+points(121.537290,25.021335, type="p", pch=18, col='white', cex=1.5)
+# adding text
+text(121.53,24.921335,"NTU", col='white', font=2)
+# adding scale
+maps::map.scale(x=120, y=25.4)
+
+```
+
+```{r, echo=TRUE}
+library(tidyverse)
+```
