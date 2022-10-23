@@ -146,7 +146,7 @@ plot.bathy(TW.bathy,
 library(leaflet)
 library(rgdal)
 
-taiwan <- readOGR('D:/R_WD/Git linked/2022RisFUN-Mo/Mapping/mapdata202209220943/COUNTY_MOI_1090820.shp', use_iconv=TRUE, encoding='UTF-8')
+taiwan <- readOGR('D:/R_WD/Git linked/2022RisFUN-Mo/Mapping/Data_Mapping/mapdata202209220943/COUNTY_MOI_1090820.shp', use_iconv=TRUE, encoding='UTF-8')
 
 FRE <- paste(sep = "<br/>",
   "<b><a href='https://www.dipintothereef.com/'>FRELAb TAIWAN</a></b>",

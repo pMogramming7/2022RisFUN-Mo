@@ -1,0 +1,59 @@
+---
+title: "Practice_5.1"
+author: "Mo Chen"
+date: "2022-10-23"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+### Environment Setup
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# MAPPING
+library(maptools) #Basic Map
+library(raster) #for GADM
+library(rgdal) #for gpx and other "geospatial" data
+#Using ggplot2
+library(tidyverse)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(sf)
+#For GBIF DATA
+#library(rgbif)
+#For distribution map
+#library(mapr)
+library(marmap) #Bathymetric map等深等壓線圖
+library(leaflet) #leaflet in webpage or markdown
+```
+
+### Wu-Lai waterfall
+This a map for the route to Wu-Lai waterfall, I would like to visit this place by cycling.
+
+* Start point: IONTU
+
+* Route length: 50.26km
+
+* Climb altitude: 534m
+
+```{r, echo=FALSE}
+WuLai <- read_sf(dsn="D:/R_WD/Git linked/2022RisFUN-Mo/Mapping/Data_Mapping/WuLai-waterfall.gpx",layer="tracks")
+
+ggplot(WuLai) + geom_sf() + theme_bw() + coord_sf(xlim = c(121.45, 121.65), ylim = c(24.80, 25.05), expand = FALSE)
+
+WuLai_track <- WuLai %>%
+  st_combine() %>%
+  st_cast(to = "LINESTRING") %>%
+  st_sf() 
+```
+
+```{r, echo=FALSE}
+# taiwan <- readOGR('D:/R_WD/Git linked/2022RisFUN-Mo/Mapping/Data_Mapping/mapdata202209220943', use_iconv=TRUE, encoding='UTF-8') Map <- plot(taiwan,axes=T,bg=colors()[431],col='green') [try to add this map into leaflet too, but I failed :(]
+
+WLwf <- paste(sep = "<br/>",
+  "<b><a href='https://newtaipei.travel/zh-tw/attractions/detail/402224'>WuLai Waterfall</a></b>", "maybe not now, it's too cold outside")
+
+final_result <- leaflet(WuLai_track) %>%  addPolygons(weight=0.5) %>% addProviderTiles('Stamen.Watercolor') %>%  addPolylines(data = WuLai_track) %>% addPopups(121.55192, 24.84746, WLwf, options = popupOptions(closeButton = TRUE)) 
+
+final_result
+```
