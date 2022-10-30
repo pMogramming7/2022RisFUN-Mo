@@ -83,11 +83,13 @@ for (i in 2:4){grow.r.g(i, 6)}
 ```{r, echo=TRUE}
 grow.log <- function (growth.r, number.ge) { 
   num_ge<-number.ge
+  gro_r<- growth.r
   generation<-1:num_ge
   N <- rep (0,num_ge)
+  K <- 100
   N[1] <- 1
   for (i in 2:num_ge) {
-    N[i]=N[i-1]+(growth.r*N[i-1]*((100-N[i-1])/100))
+    N[i]=N[i-1]+(gro_r*N[i-1]*((K-N[i-1])/K))
   }
   plot(N~generation,type='b', main=paste("Rate =", growth.r, ", ", number.ge, "generations"))
 }
@@ -101,7 +103,8 @@ for (i in 2:4){grow.log(i, 30)}
 saveGIF({
 for (i in seq(2,3.4,by=0.2)){
   grow.log(i,30)
-}})
+}}, interval = 0.5, file = 'D:/R_WD/Git linked/2022RisFUN-Mo/Loops & Functions/Logistic_growth.gif')
 ```
 
-![logistic growth animation](D:/R_WD/Git linked/2022RisFUN-Mo/Loops & Functions/animation.gif)
+![logistic growth animation](D:/R_WD/Git linked/2022RisFUN-Mo/Loops & Functions/Logistic_growth.gif)
+
