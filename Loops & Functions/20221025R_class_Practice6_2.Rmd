@@ -1,0 +1,84 @@
+---
+title: "2022-10-25_Practice6.2"
+author: "Berrica"
+date: "2022-10-31"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R class practice 6.2
+# Lotka-Volterra
+
+
+```{r}
+library(animation)
+#competition
+grow.com <- function(start_1, start_2, a12 = 0.8, a21 = 0.8, num_gen = 30,
+                     growth.rate1 = 3.2, growth.rate2 = 1.2, K1 = 100, K2 = 120){
+  N1 <- rep(0, num_gen)
+  N2 <- rep(0, num_gen) 
+  
+  N1[1] <- start_1
+  N2[1] <- start_2
+  
+  generation <- 1:num_gen
+
+  for (i in 2:num_gen) {
+    N1[i] <- N1[i-1]+(growth.rate1*N1[i-1]*((K1-N1[i-1]-a12*N2[i-1])/K1)) #competition: -a12*N2[i-1]
+    N2[i] <- N2[i-1]+(growth.rate2*N2[i-1]*((K2-N2[i-1]-a21*N1[i-1])/K2)) #competition: -a21*N1[i-1]
+  }
+  
+  if (N1[1]>0){  
+    plot(N1~generation,
+         type='b',
+         ylim=c(0,max(c(K1,K2))),
+         col = 'blue',
+         ylab = 'N', main = paste('start_1 =', start_1, ', start_2 = ', start_2, 
+                                  ', growth.rate1 = ', growth.rate1, ', growth.rate2 = ',growth.rate2,
+                                 '\na12 = ', a12, ', a21 = ', a21, ', K1 = ', K1, ', K2 = ', K2))
+  }else{
+    plot(N1~generation,
+         type = "n",
+         ylim = c(0,max(c(K1,K2))),
+         col = 'blue',
+         ylab="N", main = paste('start_1 =', start_1, ', start_2 = ', start_2, 
+                                  ', growth.rate1 = ', growth.rate1, ', growth.rate2 = ',growth.rate2,
+                                 '\na12 = ', a12, ', a21 = ', a21, ', K1 = ', K1, ', K2 = ', K2))  #沒有大於0就不會畫出來
+  }
+ 
+  if (N2[1]>0){
+    lines(N2~generation,type = "b",col='red')
+  }
+}
+```
+
+## GIF
+```{r, animation.hook="gifski", fig.show='hold', echo=FALSE, fig.width=15, fig.height= 4}
+library(gifski)
+for (i in seq (0.5,1.5,by=0.2)){
+    grow.com(start_1 = 1, start_2 = 0, a12 = i, a21 = i, growth.rate1 = 1, growth.rate2 = 1)
+    text(6,110,"Species 1 alone")
+}
+```
+
+```{r, animation.hook="gifski", fig.show='hold', echo=FALSE,fig.width=15, fig.height= 4}
+library(gifski)
+for (j in seq (0.5,1.5,by=0.2)){
+    grow.com(start_1 = 0, start_2 = 1, a12 = j, a21 = j, growth.rate1 = 1, growth.rate2 = 1)
+    text(6,110,"Species 2 alone")
+}
+```
+
+```{r, animation.hook="gifski", fig.show='hold', echo=FALSE,fig.width=15, fig.height= 4}
+library(gifski)
+for (m in seq (0.5,1.5,by=0.2)){
+    grow.com(start_1 = 1, start_2 = 2, a12 = m, a21 = m, growth.rate1 = 1, growth.rate2 = 1)
+    text(6,110,"Both Species competing")
+}
+
+```
+
+
