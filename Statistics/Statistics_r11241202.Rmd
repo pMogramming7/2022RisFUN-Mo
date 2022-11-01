@@ -3,6 +3,8 @@ title: "Statistics"
 author: "Mo Chen"
 date: "2022-11-01"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -10,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-```{r, echo=FALSE, results='hide'}
+```{r, echo=FALSE}
 library (psych)
 library(ggplot2)
 library(dplyr)
@@ -21,5 +23,40 @@ library(car)
 ```{r, echo=TRUE}
 
 iris
+summary(iris)
+SL_plot <- ggplot(iris, aes(x=Species, y= Sepal.Length)) + geom_boxplot()
+
+SW_plot <- ggplot(iris, aes(x=Species, y= Sepal.Width )) + geom_boxplot()
+
+PL_plot <- ggplot(iris, aes(x=Species, y= Petal.Length)) + geom_boxplot()
+
+PW_plot <- ggplot(iris, aes(x=Species, y= Petal.Width)) + geom_boxplot()
+
+
+grid.arrange(SL_plot, SW_plot, PL_plot, PW_plot, ncol = 2)
+describeBy (iris, iris$Species)
+
+iris %>% group_by(Species) %>% summarise(across(c(1:4), length))
+aggregate(iris[,1:4],by=list(iris$Species), median)
+
+tapply(iris$Sepal.Length , iris$Species, mean)
+
+```
+
+```{r, echo=FALSE}
+students<-read.table('D:/R_WD/Git linked/2022RisFUN-Mo/Statistics/Data-statistic/students.txt',header=T, sep="\t", dec='.') 
+students
+
+# dataset hypotheses?
+x<-students$height
+y<-students$shoesize
+s<-students[,1:2] # a matrix
+# Pearson correlation
+# cor(x,y)
+# cor(s)
+cor.test(x,y)
+ggplot(students, aes(x = height, y = shoesize)) + 
+  geom_point() +
+  stat_smooth(method = "lm", col = "red")
 
 ```
