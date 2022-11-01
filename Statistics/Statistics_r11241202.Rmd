@@ -1,0 +1,25 @@
+---
+title: "Statistics"
+author: "Mo Chen"
+date: "2022-11-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r, echo=FALSE, results='hide'}
+library (psych)
+library(ggplot2)
+library(dplyr)
+library(gridExtra)
+library(car)
+```
+
+```{r, echo=TRUE}
+
+iris
+
+```

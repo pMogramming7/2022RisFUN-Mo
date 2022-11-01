@@ -25,10 +25,12 @@ equ <- function(x1,x2){
   generation <- 1:num_gen
   N1 <- rep (0, num_gen)
   N2 <- rep (0, num_gen)
-  a12 <- 0.6
-  a21 <- 1.2
+  a1.2 <- A12
+  a2.1 <- A21
   K1 <- 100
   K2 <- 120
+  a12 <- 0.6
+  a21 <- 1.2
   N1[1] <- x1 
   N2[1] <- x2
   for (i in 2:num_gen) {
@@ -49,10 +51,10 @@ equ <- function(x1,x2){
 } #N2 不用寫else，不然N1 run完會再跑N2的if, else，導致條件為(1,0)時會產生兩組圖表結果。
 ```
 
-```{r, echo=TRUE, results='hide'}
+```{r, echo=TRUE, eval=FALSE}
 saveGIF({
   equ(6,6)
-}, interval = 0.1, file = "D:/R_WD/Git linked/2022RisFUN-Mo/Loops & Functions/competing_model.gif")
+}, interval = 0.1, file = "D:/R_WD/Git linked/2022RisFUN-Mo/Loops & Functions/Competing_model.gif")
 
 saveGIF({
   equ(1,0)
