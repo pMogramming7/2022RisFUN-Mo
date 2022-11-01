@@ -43,26 +43,24 @@ equ <- function(x1,x2){
   }
   print(N2[i])
   if (N2[1]>0){
-    lines(N2~generation,typ="b",col=3,ylim=c(0,min(c(K1+20,K2+20))),ylab="N")} else {
-    plot(N2~generation,typ="n",ylim=c(0,min(c(K1+20,K2+20))),ylab="N")
-  }
+    lines(N2~generation,typ="b",col=3,ylim=c(0,min(c(K1+20,K2+20))),ylab="N")} 
   }
   
-}
+} #N2 不用寫else，不然N1 run完會再跑N2的if, else，導致條件為(1,0)時會產生兩組圖表結果。
 ```
 
-```{r, echo=FALSE}
+```{r, echo=TRUE, results='hide'}
 saveGIF({
   equ(6,6)
-}, interval = 0.1, movie.name = "competing_model.gif")
+}, interval = 0.1, file = "D:/R_WD/Git linked/2022RisFUN-Mo/Loops & Functions/competing_model.gif")
 
 saveGIF({
   equ(1,0)
-}, interval = 0.25, movie.name = "species1_alone.gif")
+}, interval = 0.1, file = "D:/R_WD/Git linked/2022RisFUN-Mo/Loops & Functions/species1_alone.gif")
 
 saveGIF({
   equ(0,1)
-}, interval = 0.25, movie.name = "species2_alone.gif")
+}, interval = 0.1, file = "D:/R_WD/Git linked/2022RisFUN-Mo/Loops & Functions/species2_alone.gif")
 ```
 
 
