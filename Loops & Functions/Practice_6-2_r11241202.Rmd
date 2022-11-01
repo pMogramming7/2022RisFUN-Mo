@@ -52,7 +52,7 @@ equ <- function(x1,x2){
 ```
 
 ```{r, echo=TRUE, eval=FALSE}
-saveGIF({
+saveGIF(
   equ(6,6)
 }, interval = 0.1, file = "D:/R_WD/Git linked/2022RisFUN-Mo/Loops & Functions/Competing_model.gif")
 
