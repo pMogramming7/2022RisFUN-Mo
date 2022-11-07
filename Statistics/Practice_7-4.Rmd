@@ -1,0 +1,108 @@
+---
+title: "Statistics-Practice7.4"
+author: "Mo Chen"
+date: "2022-11-07"
+output: html_document
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r, echo=TRUE}
+library(tidyverse)
+library (psych)
+library(gridExtra)
+
+```
+
+### Data pull and arrangment
+```{r, echo=TRUE}
+Rairuoho <- read.table("D:/R_WD/Git linked/2022RisFUN-Mo/Statistics/Data-statistic/rairuoho.txt", header=T, sep="\t")
+
+rairuoho <- subset(Rairuoho[,1:11]) # leave the wanted column by specify the range we want
+
+Rairuoho.trans <- rairuoho %>% pivot_longer(cols=starts_with("day"),
+                          names_to = "day",
+                          names_prefix = "day",
+                          values_to = "length",
+                          values_drop_na = "TRUE") %>% unite("sp_coor", 4:5, sep = "_", remove = TRUE) %>% mutate(treatment = replace(treatment, treatment =="nutrient", "enriched"))
+
+head(Rairuoho.trans, 3)
+str(Rairuoho.trans)
+```
+### Inspect element using plot
+```{r, echo=TRUE}
+treatment.all <- NULL
+treatment.all <- ggplot(Rairuoho.trans, aes(x = day, y = length, color = treatment)) + geom_boxplot() + xlab("Day") + ylab("Length") + ggtitle("Treatments between Rairuoho") + guides(color = guide_legend(title = "Treatment")) 
+
+treatment.all
+
+treatment.bed <- NULL
+treatment.bed <- treatment.all + facet_wrap( ~ bed)
+
+treatment.bed
+```
+
+### T test using function in R
+```{r, echo=TRUE}
+day.8L <- Rairuoho.trans$day == "8"
+Length8 <- Rairuoho.trans[day.8L,]
+head (Length8, 3)
+
+en.L8 <- Length8[Length8$treatment == "enriched", ]$length
+wa.L8 <- Length8[Length8$treatment == "water", ]$length
+
+T8.treatment <- t.test(en.L8, wa.L8, paired = FALSE, alternative = "two.sided", var.equal = FALSE)
+T8.treatment
+
+day.3L <- Rairuoho.trans$day == "3"
+Length3 <- Rairuoho.trans[day.3L,]
+
+en.L3 <- Length3[Length3$treatment == "enriched", ]$length
+wa.L3 <- Length3[Length3$treatment == "water", ]$length
+
+T3.treatment <- t.test(en.L3, wa.L3, paired = FALSE, alternative = "two.sided", var.equal = FALSE)
+T3.treatment
+```
+
+```{r, echo = TRUE}
+mould8L <- c("mould1", "mould2")
+m8L <- filter(Length8, bed %in% mould8L)
+
+paper8L <- c("paper4", "paper8")
+p8L <- filter(Length8, bed %in% paper8L)
+```
+
+### My t test design
+```{r, echo=TRUE}
+TATest <- NULL
+TATest <- function(A, B, var.equal = c('TRUE', 'FALSE')){
+  aq <- NULL
+  if(var.equal == TRUE){
+    aq = ((length(A)-1)*var(A)+(length(B)-1)*var(B))/(length(A)+length(B)-2)
+    t_value = (mean(A)-mean(B))/(aq*((1/length(A))+(1/(length(B)))))
+    df= length(A)+length(B)-2
+    p= pt(t_value, df, lower.tail = T)
+    paste('t=', t_value, ', degree_of_freedom=', df, ' , p = ', p)
+  }
+  else{t_value = (mean(A)-mean(B))/((var(A)/length(A)+var(B)/length(B))^0.5)
+  df=((var(A)/length(A)+var(B)/length(B))^2)/( (var(A)/length(A))^2/(length(A)-1)+ (var(B)/length(B))^2/(length(B)-1) )
+  p= pt(t_value, df, lower.tail = T)
+  paste('t=', t_value, ', degree_of_freedom=', df, ' , p = ', p)
+    
+  }
+}
+```
+
+#### Final result:
+```{r, echo=TRUE}
+var.test(en.L8, wa.L8)
+TATest(en.L8, wa.L8, TRUE)
+var.test(en.L3,en.L8)
+TATest(en.L3,en.L8, TRUE)
+```
+
