@@ -93,16 +93,18 @@ TATest <- function(A, B, var.equal = c('TRUE', 'FALSE')){
   df=((var(A)/length(A)+var(B)/length(B))^2)/( (var(A)/length(A))^2/(length(A)-1)+ (var(B)/length(B))^2/(length(B)-1) )
   p= pt(t_value, df, lower.tail = T)
   paste('t=', t_value, ', degree_of_freedom=', df, ' , p = ', p)
-    
   }
 }
+
 ```
 
 #### Final result:
 ```{r, echo=TRUE}
 var.test(en.L8, wa.L8)
-TATest(en.L8, wa.L8, TRUE)
-var.test(en.L3,en.L8)
-TATest(en.L3,en.L8, TRUE)
+TATest(en.L8, wa.L8, FALSE)
+t.test(en.L8, wa.L8)
+var.test(en.L3, wa.L3)
+TATest(en.L3, wa.L3, FALSE)
+t.test(en.L3, wa.L3)
 ```
 

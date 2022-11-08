@@ -502,7 +502,6 @@ TATest &lt;- function(A, B, var.equal = c(&#39;TRUE&#39;, &#39;FALSE&#39;)){
   df=((var(A)/length(A)+var(B)/length(B))^2)/( (var(A)/length(A))^2/(length(A)-1)+ (var(B)/length(B))^2/(length(B)-1) )
   p= pt(t_value, df, lower.tail = T)
   paste(&#39;t=&#39;, t_value, &#39;, degree_of_freedom=&#39;, df, &#39; , p = &#39;, p)
-    
   }
 }</code></pre>
 <div id="final-result" class="section level4">
@@ -519,22 +518,46 @@ TATest &lt;- function(A, B, var.equal = c(&#39;TRUE&#39;, &#39;FALSE&#39;)){
 ## sample estimates:
 ## ratio of variances 
 ##           2.078991</code></pre>
-<pre class="r"><code>TATest(en.L8, wa.L8, TRUE)</code></pre>
-<pre><code>## [1] &quot;t= 1.10735966561736 , degree_of_freedom= 46  , p =  0.863052251190761&quot;</code></pre>
-<pre class="r"><code>var.test(en.L3,en.L8)</code></pre>
+<pre class="r"><code>TATest(en.L8, wa.L8, FALSE)</code></pre>
+<pre><code>## [1] &quot;t= 4.20376196564581 , degree_of_freedom= 40.9687947393269  , p =  0.999930627406361&quot;</code></pre>
+<pre class="r"><code>t.test(en.L8, wa.L8)</code></pre>
+<pre><code>## 
+##  Welch Two Sample t-test
+## 
+## data:  en.L8 and wa.L8
+## t = 4.2038, df = 40.969, p-value = 0.0001387
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##   8.291569 23.625098
+## sample estimates:
+## mean of x mean of y 
+##  115.3333   99.3750</code></pre>
+<pre class="r"><code>var.test(en.L3, wa.L3)</code></pre>
 <pre><code>## 
 ##  F test to compare two variances
 ## 
-## data:  en.L3 and en.L8
-## F = 0.035714, num df = 23, denom df = 23, p-value = 1.498e-11
+## data:  en.L3 and wa.L3
+## F = 0.98566, num df = 23, denom df = 23, p-value = 0.9727
 ## alternative hypothesis: true ratio of variances is not equal to 1
 ## 95 percent confidence interval:
-##  0.01544976 0.08255859
+##  0.4263882 2.2784828
 ## sample estimates:
 ## ratio of variances 
-##         0.03571429</code></pre>
-<pre class="r"><code>TATest(en.L3,en.L8, TRUE)</code></pre>
-<pre><code>## [1] &quot;t= -11.0882890440097 , degree_of_freedom= 46  , p =  6.88404818780564e-15&quot;</code></pre>
+##          0.9856562</code></pre>
+<pre class="r"><code>TATest(en.L3, wa.L3, FALSE)</code></pre>
+<pre><code>## [1] &quot;t= -0.647366633331903 , degree_of_freedom= 45.9975997474559  , p =  0.260306331900757&quot;</code></pre>
+<pre class="r"><code>t.test(en.L3, wa.L3)</code></pre>
+<pre><code>## 
+##  Welch Two Sample t-test
+## 
+## data:  en.L3 and wa.L3
+## t = -0.64737, df = 45.998, p-value = 0.5206
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  -2.225905  1.142572
+## sample estimates:
+## mean of x mean of y 
+##  3.583333  4.125000</code></pre>
 </div>
 </div>
 

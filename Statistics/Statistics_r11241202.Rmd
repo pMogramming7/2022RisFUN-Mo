@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r, echo=FALSE}
-library (psych)
+library(psych)
 library(ggplot2)
 library(dplyr)
 library(gridExtra)
