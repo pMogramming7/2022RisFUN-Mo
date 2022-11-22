@@ -11,6 +11,7 @@ xaringanExtra::use_clipboard()
 ```
 
 ```{r echo=FALSE, purl=F}
+
 xfun::embed_file('linear_20221122.Rmd')
 ```
 
@@ -108,10 +109,7 @@ The figure below illustrates the linear regression model, where:
 + the intercept ($\beta_0$) and the slope ($\beta_1$) are shown in green
 + the error terms ($\epsilon$) are represented by vertical red lines
 
-<center>
 ![](D:/R_WD/Git linked/2022RisFUN-Mo/Statistics/linear-regression.png){width=50%}
-</center>
-
 
 From the figure above, it can be seen that not all the data points fall exactly on the fitted regression line. Some of the points are above the blue curve and some are below it; overall, the residual errors ($\epsilon$) have approximately mean zero.
 
@@ -583,9 +581,7 @@ legend(
 The Bootstrap approach asks a question: what if we resample the data with replacement and estimate the coefficients, how extreme would it be?
 
 
-<center>
 ![](D:/R_WD/Git linked/2022RisFUN-Mo/Statistics/boot.gif){width=50%}
-</center>
 
 
 
@@ -774,20 +770,13 @@ Two types of cross-validation can be distinguished: exhaustive and non-exhaustiv
 
 Exhaustive cross-validation methods are cross-validation methods which learn and test on all possible ways to divide the original sample into a training and a validation set.
 
-<center>
 ![](D:/R_WD/Git linked/2022RisFUN-Mo/Statistics/LOOCV.gif){width=50%}
-</center>
 
-+ Non-exhaustive cross-validation
++ Exhaustive cross-validation
 
 Non-exhaustive cross validation methods do not compute all ways of splitting the original sample. These methods are approximations of leave-p-out cross-validation.
 
-<center>
-
 ![](D:/R_WD/Git linked/2022RisFUN-Mo/Statistics/KfoldCV.gif){width=50%}
-
-</center>
-
 
 You can do K-Fold cross-validation using the `cv.lm( )` function in the DAAG package.
 
