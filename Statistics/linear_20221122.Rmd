@@ -1,0 +1,991 @@
+---
+title: "Linear models"
+---
+
+```{r eval = TRUE,  message=F, include=F, warning=F, purl=F, results="hide"}
+knitr::purl('linear_20221122.Rmd', documentation = F)
+```
+
+```{r echo=FALSE}
+xaringanExtra::use_clipboard()
+```
+
+```{r echo=FALSE, purl=F}
+xfun::embed_file('linear_20221122.Rmd')
+```
+
+```{r echo=FALSE, purl=F}
+xfun::embed_file('linear_20221122.R')
+```
+
+```{r echo=FALSE, purl=F}
+xfun::embed_file('D:/R_WD/Git linked/2022RisFUN-Mo/Statistics/Data-statistic/shagLPI.csv')
+```
+
+```{r echo=FALSE, purl=F}
+xfun::embed_file('D:/R_WD/Git linked/2022RisFUN-Mo/Statistics/Data-statistic/Weevil_damage.csv')
+```
+
+```{r,  eval=T, warning=F, message=F}
+library(Hmisc)
+library(corrplot)
+library(MASS)
+library(car)
+library(interactions)
+library(yarrr)
+library(tidyr)
+library(readr)
+library(lme4)
+library (lmerTest)
+library(nlme)
+library(gvlma)
+library(simpleboot)
+library(DAAG)
+library(bootstrap)
+library(MBESS)
+library(leaps)
+```
+
+In the coming two weeks, we will take some time on basic concepts behind some simple linear models.
+
+# Linear regression
+
+## Definition
+
+Let's start with a a simple correlation among two variables:
+
+```{r,  eval=T, warning=F, message=F}
+# correlation
+rairuoho<-read.table('D:/R_WD/Git linked/2022RisFUN-Mo/Statistics/Data-statistic/rairuoho.txt',header=T, sep="\t", dec=".")
+cor.test(rairuoho$day6, rairuoho$day7)
+```
+
+We can repeat it for all days by building a Pearson coefficient matrix:
+
+```{r,  eval=T, warning=F, message=F}
+corr<-cor(rairuoho[,1:6])
+corr # cor.test does not work on Matrix
+```          
+
+Which however doesn't give us the p-values of those correlations. Many packages offer  a better visualization of this matrix, such as `corrplot`: 
+
+```{r,  eval=T, warning=F, message=F}
+p.val<-rcorr(as.matrix(rairuoho[,1:6]))$P
+corrplot(corr,type='upper',method='color', addCoef.col = "black", p.mat=as.matrix(p.val), sig.level = 0.05,title = "Correlation Matrix", mar = c(2,0,2,0), diag=F)
+```
+
+Previously, we saw that this type of 'relationship' (a linear model `lm`) between two variables can be added to a scatterplot using the function `abline` 
+
+```{r,  eval=T, warning=F, message=F}
+plot(rairuoho$day6, rairuoho$day7)
+abline(lm(rairuoho$day7~rairuoho$day6), col="red", lwd=2)
+# remember `ggplot`
+# ggplot(rairuoho, aes(x = day6, y = day7)) + 
+#  geom_point() +
+#  stat_smooth(method = "lm", col = "red")
+```
+
+Indeed our correlation derived from a simple __linear regression__. In **Model I regression** (indeed we have Model II when two variable in the regression equation are random , i.e. no controlled by the researcher), it is used to predict a quantitative outcome of a dependent variable $y$ on the basis of one single independent predictor variable $x$. The goal is to build a mathematical model (or formula) that defines $y$ as a function of the $x$ variable.
+
+Once, we built a statistically significant model, it’s possible to use it for predicting future outcome on the basis of new $x$ values.
+
+## Formula and basics
+
+The formula of linear regression can be written as follows: $$ y = \beta_0 + \beta_1*x + \epsilon $$
+
+where:
+
++ $\beta_0$ and $\beta_1$ are known as the regression __beta coefficients__ or __parameters__:
+
+  + $\beta_0$ is the __intercept__ of the regression line; that is the predicted value when _x = 0_.
+  + $\beta1$ is the __slope__ of the regression line.
+  
++ $\epsilon$ is the __error term__ (also known as the __residual errors__)
+
+The figure below illustrates the linear regression model, where:
+
++ the best-fit regression line is in blue
++ the intercept ($\beta_0$) and the slope ($\beta_1$) are shown in green
++ the error terms ($\epsilon$) are represented by vertical red lines
+
+<center>
+![](D:/R_WD/Git linked/2022RisFUN-Mo/Statistics/linear-regression.png){width=50%}
+</center>
+
+
+From the figure above, it can be seen that not all the data points fall exactly on the fitted regression line. Some of the points are above the blue curve and some are below it; overall, the residual errors ($\epsilon$) have approximately mean zero.
+
+**TERMINOLOGY ALERT**
+
+The sum of the squares of the residual errors are called the __Residual Sum of Squares__ or __RSS__.
+
+The average variation of points around the fitted regression line is called the __Residual Standard Error (RSE)__. This is one the metrics used to evaluate the overall quality of the fitted regression model. The lower the RSE, the better it is.
+
+Since the mean error term is zero, the outcome variable y can be approximately estimated as follow:
+
+$$y= \beta_0+\beta_1*x$$
+
+Mathematically, the beta coefficients ($\beta_0$ and $\beta_1$) are determined so that the **RSS** is as minimal as possible. This method of determining the beta coefficients is technically called __least squares__ regression or __ordinary least squares__ (OLS) regression.
+
+Once, the beta coefficients are calculated, a *t*-test is performed to check whether or not these coefficients are significantly different from zero. A non-zero beta coefficients means that there is a significant relationship between the predictors ($x$) and the outcome variable ($y$).
+
+## Computation
+
+Finally! The simple linear regression tries to find the best line to predict $y$ on the basis of $x$.
+
+In the `iris` data set, a linear model equation can be written as follow: 
+
+$Petal.Width = \beta_0 + \beta_1 * Petal.Length$
+
+In R language, it is translated using the  function `lm` and in order to determine the beta coefficients of the linear model:
+
+```{r,  eval=T, warning=F, message=F}
+model1 <- lm(Petal.Width ~ Petal.Length, data = iris)
+model1$coefficients
+```
+The results show the intercept ($\beta_0$) and the slope ($\beta_1$), i.e. the  beta coefficients for the `Petal.Length` variable
+
+```{r,  eval=T, warning=F, message=F}
+ggplot(iris, aes(x = Petal.Length, y = Petal.Width)) +
+  geom_point(aes(fill=Species),shape = 21, size=5) +
+  stat_smooth(method = "lm", col = "blue")
+```
+
+## Interpretation
+
+From the output above:
+
++ the estimated regression line equation can be written as follow: $Petal.Width = -0.3631 + 0.4158*Petal.Length$
+
++ the intercept ($\beta_0$) is $-0.3631$. It can be interpreted as the predicted width of petal for a length of petal equal to zero. Regression through the origin is when you force the intercept of a regression model to equal zero. It’s also known as fitting a model without an intercept (e.g., the intercept-free linear model $y = \beta_1*x$ is equivalent to the model $y = \beta_0 + \beta_1*x$ with $\beta_0=0$). Knowing that the **true relationship** between your predictors and the expected value of your dependent variable has to pass through the origin would be a good reason for forcing the estimated relationship through the origin if you knew for certain what the true relationship was (be careful very rare cases where it is justified to remove the intercept).
+
+
++ the regression beta coefficient for the variable `Petal.Length` ($\beta1$), also known as the slope, is $0.4158$. This means that, for one unit of $Petal.Length$, we can expect an increase of $0.4158$ units in $Petal.Width$. 
+
+## Model assessment
+
+Before using our model to predict $Petal.Width$, we should make sure that this model is statistically significant, that is:
+
++ there is a statistically significant relationship between the predictor and the outcome variables
+
++ the model that we built fits very well the data in our hand.
+
+## Model summary
+
+Using our `lm` model, we get a bit more than just the coefficient ($\beta0$) and ($\beta1$) 
+
+
+```{r,  eval=T, warning=F, message=F}
+summary(model1)
+```
+
+Looking at only the p-values, this simple model seems to fit the data very well. But the output tells us much more. The summary outputs shows 6 components, including:
+
++ **Call** shows the function call used to compute the regression model.
++ **Residuals** provide a quick view of the distribution of the residuals, which by definition have a mean zero. Therefore, the median should not be far from zero, and the minimum and maximum should be roughly equal in absolute value.
++ **Coefficients** shows the regression beta coefficients and their statistical significance. Predictor variables, that are significantly associated to the outcome variable, are marked by stars.
++ **Residual standard error** (RSE), **R-squared** (R2) and the **F-statistic** are metrics that are used to check how well the model fits to our data.
+
+### Coefficients significance
+
+The coefficients table, in the model statistical summary, shows:
+
++ the estimates of the **beta coefficients**
++ the **standard errors** (SE), which defines the accuracy of beta coefficients. For a given beta coefficient, the SE reflects how the coefficient varies under repeated sampling. It can be used to compute the confidence intervals and the t-statistic.
++ the **_t_-statistic** and the associated **_p_-value**, which defines the statistical significance of the beta coefficients.
+
+
+**t-statistic and p-values**
+
+For a given predictor, the t-statistic (and its associated *p*-value) tests whether or not there is a statistically significant relationship between a given predictor and the outcome variable, that is whether or not the beta coefficient of the predictor is significantly different from zero.
+
+The statistical hypotheses are as follow:
+
++ Null hypothesis (H~0~): the coefficients are equal to zero (i.e., no relationship between x and y)
++ Alternative Hypothesis (H~1~): the coefficients are not equal to zero (i.e., there is some relationship between $x$ and $y$)
+
+Mathematically, for a given beta coefficient ($\beta$), the _t_-test is computed as $t = (\beta - 0)/SE(\beta)$, where $SE(\beta)$ is the SE of the coefficient $\beta$. Simply said, the t-statistic measures the number of standard deviations that $\beta$ is away from 0. Thus a large _t_-statistic will produce a small p-value (=different).
+
+The higher the _t_-statistic (and the lower the p-value), the more significant the predictor. The symbols to the right (***) visually specifies the level of significance. The line below the table shows the definition of these symbols; one star means 0.01 < p < 0.05. The more the stars beside the variable’s p-value, the more significant the variable.
+
+A statistically significant coefficient indicates that there is an association between the predictor ($x$) and the outcome ($y$) variable.
+
+The _t_-statistic is a very useful guide for whether or not to include a predictor in a model. High t-statistics (which go with low p-values near 0) indicate that a predictor should be retained in a model, while very low _t_-statistics indicate a predictor could be dropped (Bruce and Bruce 2017).
+
+**Standard errors and confidence intervals**
+
+The standard error measures the variability/accuracy of the beta coefficients. It can be used to compute the confidence intervals of the coefficients.
+
+For example, the 95% confidence interval for the coefficient $\beta1$ is defined as $\beta1 +/- 2*SE(\beta1)$, where:
+
+the lower limits of $\beta_1 = \beta_1 - 2*SE(\beta_1) = 0.415 - 2*0.009 = 0.397$
+
+the upper limits of $\beta1 = \beta1 + 2*SE(\beta1) = 0.415 + 2*0.009 = 0.435$
+
+That is, there is approximately a 95% chance that the interval [0.397, 0.435] will contain the true value of $\beta1$. Similarly the 95% confidence interval for $\beta0$ can be computed as $\beta0 +/- 2*SE(\beta0)$.
+
+To get this information, either you calculate by hands or you simply call:
+
+```{r,  eval=T, warning=F, message=F}
+confint(model1)
+```
+
+### Model accuracy
+
+
+Once you identified that, at least, one predictor variable is significantly associated the outcome, you should continue the diagnostic by checking how well the model fits the data. This process is also referred to as the *goodness-of-fit*
+
+The overall quality of the linear regression fit can be assessed using the following three parameters, displayed in the model summary:
+
+1. **The Residual Standard Error (RSE)**
+
+The **RSE** (also known as the model sigma) is the **residual variation**, representing the average variation of the observations points around the fitted regression line. This is the **standard deviation of residual errors**.
+
+RSE provides an absolute measure of patterns in the **data that can’t be explained by the model**. When comparing two models, the model with the small RSE is a good indication that this model fits the best the data.
+
+Dividing the RSE by the average value of the outcome variable will give you the prediction error rate, which should be as small as possible.
+
+In our example, RSE = `0.2065`, meaning that the observed Petal.width values deviate from the true regression line by approximately `0.2065` units in average.
+
+Whether or not an RSE of `0.2065` units is an acceptable prediction error is subjective and depends on the problem context. However, we can calculate the percentage error. In our data set, the mean value of Petal.Width is 1.1993, and so the percentage error is 0.2065/1.1993 = 17%.
+
+```{r,  eval=T, warning=F, message=F}
+sigma(model1)*100/mean(iris$Petal.Width)
+```
+
+2. **The R-squared ($R^2$)**
+
+The **R-squared** $R^2$ ranges from 0 to 1 and represents the **proportion of information (i.e. variation) in the data that can be explained by the model**. The **adjusted $R^2$ adjusts $R^2$ with the degrees of freedom**.
+
+The $R^2$ measures, how well the model fits the data. For a simple linear regression, $R^2$ is the square of the **Pearson correlation coefficient**.
+
+A high value of $R^2$ is a good indication. However, as the value of $R^2$ tends to increase when more predictors are added in the model, such as in **multiple linear regression mode**l, you should mainly consider the adjusted $R^2$**, which is a penalized $R^2$ for a higher number of predictors.
+
++ An (adjusted) $R^2$ that is close to 1 indicates that a large proportion of the variability in the outcome has been explained by the regression model.
+
++ A number near 0 indicates that the regression model did not explain much of the variability in the outcome.
+
+3. **F-statistic**
+
+The **F-statistic** gives the overall significance of the model. It assess whether **at least one predictor variable has a non-zero coefficient**.
+
+In a simple linear regression, this test is not really interesting since it just duplicates the information in given by the *t*-test, available in the coefficient table. In fact, the *F*-test is identical to the square of the t-test: $1882 = (43.387)^2$. That would be true in any model with 1 degree of freedom.
+
+The F-statistic becomes **more important** once we start **using multiple predictors** as in multiple linear regression.
+
+A large F-statistic will corresponds to a statistically significant *p*-value (p < 0.05). In our example, the F-statistic equal 1882 producing a p-value of < 2.2e-16, which is highly significant.
+
+# Multiple regression
+
+**Multiple linear regression** is just an **extension of simple linear regression** used to predict an outcome variable ($y$) on the basis of multiple distinct predictor variables ($x$).
+
+With three predictor variables ($x$), the prediction of $y$ is expressed by the following equation:
+
+$$y = \beta_0 + \beta_1*x_1 + \beta_2*x_2 + \beta_3*x_3$$
+
+The “$\beta$” values are called the regression weights (or beta coefficients). They measure the association between the predictor variable and the outcome. “$\beta_j$” can be interpreted as the average effect on $y$ of a one unit increase in “$x_j$”, holding all other predictors fixed.
+
+## Fitting the model
+
+R provides comprehensive support for multiple linear regression. We want to build a model for estimating `Petal.Width` based on data we get on `Petal.Length`, `Sepal.Length`, and `Sepal.Width`. 
+
+
+$$Petal.Width = \beta_0 + \beta_1*Petal.Length + \beta_2*Sepal.Length + \beta_3*Sepal.Width$$
+You can now easily compute this in R as follow:
+
+
+```{r,  eval=T, warning=F, message=F}
+fit1 <- lm(Petal.Width ~ Petal.Length + Sepal.Width + Sepal.Length, data = iris)
+summary(fit1)
+```
+
+```{r,  eval=F, warning=F, message=F}
+# Other useful functions
+coefficients(fit1) # model coefficients
+confint(fit1, level=0.95) # CIs for model parameters
+fitted(fit1) # predicted values
+residuals(fit1) # residuals
+anova(fit1) # anova table
+vcov(fit1) # covariance matrix for model parameters
+influence(fit1) # regression diagnostics
+```
+
+## Regression diagnostics
+
+See [here](https://www.statmethods.net/stats/rdiagnostics.html) for functions and packages
+
+### Diagnostic plots
+
+[Diagnostic](http://strata.uga.edu/8370/rtips/regressionPlots.html) plots provide checks for heteroscedasticity, normality, and influential observations. 
+
+```{r,  eval=T, warning=F, message=F}
+# diagnostic plots
+layout(matrix(c(1,2,3,4),2,2)) # optional 4 graphs/page
+plot(fit1)
+```
+
+1. **Residuals vs. fitted** plot.
+
+This plot serves mainly to check the linearity, although lack of homoscedasticity or independence can also be detected. Under linearity, we expect the red line (a nonlinear fit of the mean of the residuals) to be almost flat. This means that the trend of $Y_1,...,Y_n$ is linear with respect to the predictors. Heteroscedasticity can be detected also in the form of irregular vertical dispersion around the red line. The dependence between residuals can be detected (harder) in the form of non randomly spread residuals.
+
+2. **Normal Q-Q** plot. Check the normality 
+
+Under normality, we expect the points (sample quantiles of the standardized residuals vs. theoretical quantiles of a  $N(0,1)$ **to align with the diagonal line**, which represents the ideal position of the points if those were sampled from a $N(0,1)$. It is usual to have larger departures from the diagonal in the extremes than in the center, even under normality, although these departures are more clear if the data is non-normal.
+
+3. **Scale-location** plot.
+
+Serves for checking the **homoscedasticity**. It is similar to the first diagnostic plot, but now with the residuals standardized and transformed by a square root (of the absolute value). This change transforms the task of spotting heteroskedasticity by looking into irregular vertical dispersion patterns into spotting for nonlinearities, which is somehow simpler. **Under homoscedasticity, we expect the red line to be almost flat.** If there are consistent nonlinear patterns, then there is evidence of heteroscedasticity.
+
+4. **Residuals versus Leverage** to detect outlier and check for the normality. On this plot, you want to see that the red smoothed line stays close to the horizontal gray dashed line and that no points have a large Cook’s distance (i.e, >0.5). 
+
+### Outliers
+
+```{r,  eval=T, warning=F, message=F}
+# Assessing Outliers
+outlierTest(fit1) # Bonferonni p-value for most extreme obs
+qqPlot(fit1, main="QQ Plot") #qq plot for studentized resid
+leveragePlots(fit1) # leverage plots
+```
+
+### Influential observations
+
+```{r,  eval=T, warning=F, message=F}
+# Influential Observations
+# added variable plots
+avPlots(fit1)
+# Cook's D plot
+# identify D values > 4/(n-k-1)
+cutoff <- 4/((nrow(iris)-length(fit1$coefficients)-2))
+plot(fit1, which=4, cook.levels=cutoff)
+# Influence Plot
+influencePlot(fit1, id.method="identify", main="Influence Plot", sub="Circle size is proportial to Cook's Distance" )
+```
+
+### Non-normality
+
+```{r,  eval=T, warning=F, message=F}
+# Normality of Residuals
+# qq plot for studentized resid
+qqPlot(fit1, main="QQ Plot")
+# distribution of studentized residuals
+sresid <- studres(fit1)
+hist(sresid, freq=FALSE,
+   main="Distribution of Studentized Residuals")
+xfit<-seq(min(sresid),max(sresid),length=40)
+yfit<-dnorm(xfit)
+lines(xfit, yfit)
+```
+
+### Non-constant Error Variance
+
+```{r,  eval=T, warning=F, message=F}
+# Evaluate homoscedasticity
+# non-constant error variance test
+ncvTest(fit1)
+# plot studentized residuals vs. fitted values
+spreadLevelPlot(fit1)
+```
+
+### Multi-collinearity
+
+A common problem that arises in multiple linear regression is the **multi-collinearity**. This is the situation when two or more predictors are highly linearly related between them. Multicollinearitiy has important effects on the fit of the model:
+
++ It reduces the precision of the estimates. As a consequence, signs of fitted coefficients may be reversed and valuable predictors may appear as non significant.
+
++ It is difficult to determine how each of the highly related predictors affects the response, since one masks the other. This may result in numerical instabilities.
+
+An approach is to detect multicollinearity is to compute a correlation matrix between the predictors as we learned earlier
+
+```{r,  eval=T, echo=F, warning=F, message=F}
+corr<-cor(iris[,1:3])
+p.val<-rcorr(as.matrix(iris[,1:3]))$P
+corrplot(corr,type='upper',method='color', addCoef.col = "black",  p.mat=as.matrix(p.val), sig.level = 0.05,diag=F)
+```
+
+Here we can see what we already knew that `Sepal.Length` and `Petal.Length` are highly linearly related. One could be removed. However, it is not enough to inspect pair by pair correlations in order to get rid of multicollinearity.A better approach is to compute the **Variance Inflation Factor** (VIF) of each coefficient $\beta_j$. This is measure of how linearly dependent is $X_j$ with the rest of predictors:
+
+
+$$\text{VIF}(\beta_j)=\frac{1}{1-R^2_{X_j|X_{-j}}}$$
+
+where $R^2_{X_j|X_{-j}}$ is the $R^2$ from a regression of $X_j$ into the remaining predictors. The next rule of thumb gives direct insight into which predictors are multicollinear:
+
+ + **VIF close to 1**: absence of multicollinearity.
+ + **VIF larger than 5 or 10**: multicolinearity **problematic**.  
+ 
+Other considered $\sqrt{VIF}>2$ as critical limit to consider multicollinearity.
+
+```{r,  eval=T, warning=F, message=F}
+# Evaluate Collinearity
+car::vif(fit1) # variance inflation factors
+sqrt(car::vif(fit1)) > 2 # problem?
+```
+
+### Nonlinearity
+
+```{r,  eval=T, warning=F, message=F}
+# Evaluate Nonlinearity
+# component + residual plot
+crPlots(fit1)
+# Ceres plots
+ceresPlots(fit1)
+```
+
+### Non-independence of Errors
+
+```{r,  eval=T, warning=F, message=F}
+# Test for Autocorrelated Errors
+durbinWatsonTest(fit1)
+```
+
+### Additional Diagnostic Help
+
+Based on Pena and Slate (2006), the four assumptions in linear regression are normality, heteroscedasticity, and linearity, and what the authors refer to as uncorrelatedness.
+
+The `gvlma( )` function in the `gvlma` package, performs a global validation of linear model assumptions as well separate evaluations of skewness, kurtosis, and heteroscedasticity.
+
+```{r,  eval=T, warning=F, message=F}
+gvmodel <- gvlma(fit1)
+summary(gvmodel)
+```
+
+This tests for the linear model assumptions and helpfully provides information on other assumptions. In this case we are going to look at the heteroskedasticity decisions, which has been identified as not being satisfied. We therefore reject the null hypothesis and state that there is heteroskedasticity in this model at the 5% significance level.
+
+1. Global Stat This is the overall metric; this states whether the model, as a whole, passes or fails.
+
+2. Skewness:  measuring the distribution
+
+3. Kurtosis: measuring the distribution, outliers, influential data, etc
+
+4. Link function:  misspecified model, how you linked the elements in the model assignment
+
+5. Heteroscedasticity: looking for equal variance in the residuals
+
+## Dealing with violation of assumption
+
+
+A method of choice for addressing any violations of assumptions is often simple scale transformation of either the dependent or the independent variables, or both. The Box-Cox transformation is a power transformation that eliminates non-linearity between variables, differing variances, and variable asymmetry.The ability to turn a variable into a new variable with a normal distribution is therefore very helpful.
+
+The following expression gives the Box-Cox functions transformations for various values of lambda:
+
+$\frac{x^λ-1}λ$  if  $λ\neq0$ 
+
+$log(x)$  if  $λ=0$ 
+
+being y the changed variable and lambda (λ) the transformation parameter However, the following table describes the most typical transformations:
+
+λ|Transformation
+--|--------------
+-2|$\frac{1}{x^2}$
+-1|$\frac{1}{x}$
+-0.5|$\frac{1}{\sqrt{x}}$
+0|$log(x)$
+0.5|$sqrt{x}$
+1|$x$
+2|$x^2$
+
+In practice, it is advised to choose the value from the table rather than the precise value if the estimated transformation parameter is close to one of the values of the previous table because the value from the table is simpler to understand. Below is a quick implementation of Box-Cox transformation capabilities is introduced. In this instance, the goal is to find an exponent to use to transform the dependant variavel to help produce normality and homoscedasticity of the residuals. The peak of the curve in the plot yields λ, the scaling component.
+
+
+```{r,  eval=T, warning=F, message=F}
+boxcoxfit <- boxcox(fit1,plotit=T)
+# also see `boxCox` from **car**
+# also see `BoxCoxTrans` from **caret** for individual variable
+```
+
+Find the optimal λ for Box-Cox transformation 
+
+```{r,  eval=T, warning=F, message=F}
+lambda <- boxcoxfit$x[which.max(boxcoxfit$y)]
+```
+
+For this model, λ  is was found to be about 0.667 (approximately equivalent to a square root transformation). This value would be used to transform the dependent variable and to rerun the previous analysis. But recall that the normality was not  big deal earlier but  the heteroscedasticity was at the opposite a  big issue.
+
+
+
+```{r,  eval=T, warning=F, message=F}
+#fit new linear regression model using the Box-Cox transformation
+new_fit <- lm(((iris$Petal.Width^lambda-1)/lambda) ~ Petal.Length + Sepal.Width + Sepal.Length, data = iris)
+```
+
+The optimal λ was found to be 0.667. Thus, the new regression model replaced the original response variable y with the variable y = (y^-0.667^– 1) / -0.4242424.  Also note that with the scale change, the values of the regression coefficients would become less readily interpretable.
+
+```{r,  eval=F, warning=F, message=F}
+gvlma(new_fit)
+# not better at all
+```
+
+## Bootstrap
+
+[Bootstrap](https://towardsdatascience.com/bootstrap-regression-in-r-98bfe4ff5007) is a method of random sampling with replacement. Among its other applications such as hypothesis testing, it is a simple yet powerful approach for checking the stability of regression coefficients. 
+
+Linear regression relies on several assumptions, and the coefficients of the formulas are presumably normally distributed. It shows that on average if we repeated the experiment thousands and thousands of times, the line would be in confidence intervals.
+
+The bootstrap approach does not rely on those assumption*, but simply performs thousands of estimations.
+
+(Please note, that the bootstrap approach does not violate or bypass the normality assumptions, but rather than relying on the central limit theorem [CLT], it builds its own, the Bootstrap distribution, which is asymptotically -approaching- normal)
+
+
+### Dataset Simulation
+
+We will simulate a dataset of one exploratory variable from the Gaussian distribution, and one response variable constructed by adding random noise to the exploratory variable. The population data would have 1000 observations.
+
+```{r,  eval=T, warning=F, message=F}
+set.seed(2021)
+n <- 1000
+x <- rnorm(n)
+y <- x + rnorm(n)
+population.data <- as.data.frame(cbind(x, y))
+```
+
+We will take a sample of 20 observations from these data.
+
+```{r,  eval=T, warning=F, message=F}
+sample.data <- population.data[sample(nrow(population.data), 20, replace = TRUE),]
+```
+
+### Simple regression models
+
+Let’s explore the simple regression models both for population and for sample data:
+
+```{r,  eval=T, warning=F, message=F}
+population.model <- lm(y~x, population.data)
+summary (population.data)
+```
+
+
+```{r,  eval=T, warning=F, message=F}
+sample.model <- lm(y~x, sample.data)
+summary (sample.model)
+```
+
+We can see, that the intercept is biased for the sample data; however, the slope coefficient is very close to the population one, even though we have only 20 observations in our sample dataset. The standard errors are much higher for the sample model.
+
+If we plot the models, we can see how close the lines are:
+
+```{r,  eval=T, echo=F, warning=F, message=F}
+#Plotting the models
+plot(y ~ x, col = "gray", main = 'Population and Sample Regressions')
+abline(coef(population.model)[1], coef(population.model)[2], col = "red")
+abline(coef(sample.model)[1],
+       coef(sample.model)[2],
+       col = "blue",
+       lty = 2)
+legend(
+  "topleft",
+  legend = c("Sample", "Population"),
+  col = c("red", "blue"),
+  lty = 1:2,
+  cex = 0.8)
+```
+
+### Bootstrap Approach
+
+The Bootstrap approach asks a question: what if we resample the data with replacement and estimate the coefficients, how extreme would it be?
+
+
+<center>
+![](D:/R_WD/Git linked/2022RisFUN-Mo/Statistics/boot.gif){width=50%}
+</center>
+
+
+
+Here is a simple loop of 1000 trials, which resamples with replacement these 20 observations from our sample dataset, runs the regression model and saves the coefficients we get there. In the end, we would have 1000 pairs of coefficients.
+
+```{r,  eval=T, echo=T, warning=F, message=F}
+# Containers for the coefficients
+sample_coef_intercept <- NULL
+sample_coef_x1 <- NULL
+
+for (i in 1:1000) {
+  #Creating a resampled dataset from the sample data
+  sample_d = sample.data[sample(1:nrow(sample.data), nrow(sample.data), replace = TRUE), ]
+  
+  #Running the regression on these data
+  model_bootstrap <- lm(y ~ x, data = sample_d)
+  
+  #Saving the coefficients
+  sample_coef_intercept <-
+    c(sample_coef_intercept, model_bootstrap$coefficients[1])
+  
+  sample_coef_x1 <-
+    c(sample_coef_x1, model_bootstrap$coefficients[2])
+}
+
+coefs <- rbind(sample_coef_intercept, sample_coef_x1)
+```
+
+We would take the average of these coefficients, and compare them with the other models we previously obtained:
+
+```{r,  eval=T, echo=F, warning=F, message=F}
+# Combining the results in a table
+means.boot = c(mean(sample_coef_intercept), mean(sample_coef_x1))
+knitr::kable(round(
+  cbind(
+    population = coef(summary(population.model))[, 1],
+    sample = coef(summary(sample.model))[, 1],
+    bootstrap = means.boot),4), 
+  "simple", caption = "Coefficients in different models")
+```
+
+```{r,  eval=T, echo=F, warning=F, message=F}
+a <-
+  cbind(
+    quantile(sample_coef_intercept, prob = 0.025),
+    quantile(sample_coef_intercept, prob = 0.975))
+b <-
+  cbind(quantile(sample_coef_x1, prob = 0.025),
+        quantile(sample_coef_x1, prob = 0.975))
+
+c <-
+  round(cbind(
+    population = confint(population.model),
+    sample = confint(sample.model),
+    boot = rbind(a, b)), 4)
+colnames(c) <- c("2.5 %", "97.5 %",
+                 "2.5 %", "97.5 %",
+                 "2.5 %", "97.5 %")
+knitr::kable(rbind(
+  c('population',
+    'population',
+    'sample',
+    'sample',
+    'bootstrap',
+    'bootstrap'),c),caption = "Precision of the confidence intervals")
+```
+
+We can see, that the precision is almost identical to the sample model’s, and even slightly tighter for the intercept.
+
+### The graphical representation
+
+First, the bootstrap representation:
+
+```{r,  eval=T, echo=F, warning=F, message=F}
+
+#Predicting on new data
+new.data = seq(min(x), max(x), by = 0.05)
+conf_interval <-
+  predict(
+    sample.model,
+    newdata = data.frame(x = new.data),
+    interval = "confidence",
+    level = 0.95)
+
+#Plotting the results on the project step-by-spep
+plot(
+  y ~ x,
+  col = "gray",
+  xlab = "x",
+  ylab = "y",
+  main = "Compare regressions")
+apply(coefs, 2, abline, col = rgb(1, 0, 0, 0.03))
+```
+
+These are 1000 possible regression lines we have estimated. Now let’s add to the plot population, sample, and average bootstrap lines.
+
+```{r,  eval=T, echo=F, warning=F, message=F}
+plot(
+  y ~ x,
+  col = "gray",
+  xlab = "x",
+  ylab = "y",
+  main = "Compare regressions")
+apply(coefs, 2, abline, col = rgb(1, 0, 0, 0.03))
+abline(coef(population.model)[1], coef(population.model)[2], col = "blue")
+abline(coef(sample.model)[1],
+       coef(sample.model)[2],
+       col = "black",
+       lty = 2, lwd=3)
+abline(mean(sample_coef_intercept),
+       mean(sample_coef_x1),
+       col = "green",
+       lty = 4, lwd=3)
+```
+
+We can see that they essentially capture the data in the same way. Now let’s add the confidence intervals from the sample data:
+
+
+```{r,  eval=T, echo=F, warning=F, message=F}
+plot(
+  y ~ x,
+  col = "gray",
+  xlab = "x",
+  ylab = "y",
+  main = "Compare regressions")
+apply(coefs, 2, abline, col = rgb(1, 0, 0, 0.03))
+abline(coef(population.model)[1], coef(population.model)[2], col = "blue")
+abline(coef(sample.model)[1],
+       coef(sample.model)[2],
+       col = "black",
+       lty = 2, lwd=3)
+abline(mean(sample_coef_intercept),
+       mean(sample_coef_x1),
+       col = "green",
+       lty = 4, lwd=3)
+lines(new.data, conf_interval[, 2], col = "black", lty = 3, lwd=3)
+lines(new.data, conf_interval[, 3], col = "black", lty = 3, lwd=3)
+legend("topleft",
+       legend = c("Bootstrap", "Population", 'Sample'),
+       col = c("red", "blue", 'green'),
+       lty = 1:3,
+       cex = 0.8)
+```
+
+This completes our research: we may conclude, that the bootstrapping approach returns essentially the same results but in a statistically different fashion. We do not rely on assumptions but simulate the data using a brute force method. This could be especially useful when we have doubts about the distribution the data arrived from, or want to check the stability of the coefficients, particularly for small datasets.
+
+### Iris
+
+Going back to our `iris` dataset, and addresing multicollinearity issue:
+
+```{r,  eval=T, echo=T,results=F, warning=F, message=F}
+fit1 <- lm(Petal.Width ~ Petal.Length + Sepal.Width + Sepal.Length, data = iris) # sqrt(vif(fit1)) >2 not good
+fit2 <- lm(Petal.Width ~ Sepal.Width + Sepal.Length, data = iris)
+sqrt(car::vif(fit2)) >2 # okay
+gvlma(fit2)
+boxcoxfit2 <- boxcox(fit2,plotit=T)
+lambda2 <- boxcoxfit2$x[which.max(boxcoxfit2$y)]
+new_fit2 <- lm(((iris$Petal.Width^lambda2-1)/lambda2) ~  Sepal.Width + Sepal.Length, data = iris)
+gvlma(new_fit2)
+```
+
+Let's get back to `fit2` and use a a bootstrap approach:
+
+```{r,  eval=T, echo=T,results=T, warning=F, message=F}
+fit2.boot<-lm.boot(fit2, R=1000)
+summary(fit2.boot)
+```
+
+Good for new prediction, but a more comprehensive alternative using function `Boot()` from the `car` package":
+
+```{r,  eval=T, echo=T,results=T, warning=F, message=F}
+# can specify casewise or residual sampling with the method argument
+fit3.boot <- Boot(fit2, f=coef, R=1000, method=c("case"))
+summary(fit3.boot, high.moments=T)
+```
+
+Fit 2 is not too bad overall !!!
+
+## Cross Validation
+
+**Two types**
+
+Two types of cross-validation can be distinguished: exhaustive and non-exhaustive cross-validation.
+
++ Exhaustive cross-validation
+
+Exhaustive cross-validation methods are cross-validation methods which learn and test on all possible ways to divide the original sample into a training and a validation set.
+
+<center>
+![](D:/R_WD/Git linked/2022RisFUN-Mo/Statistics/LOOCV.gif){width=50%}
+</center>
+
++ Non-exhaustive cross-validation
+
+Non-exhaustive cross validation methods do not compute all ways of splitting the original sample. These methods are approximations of leave-p-out cross-validation.
+
+<center>
+
+![](D:/R_WD/Git linked/2022RisFUN-Mo/Statistics/KfoldCV.gif){width=50%}
+
+</center>
+
+
+You can do K-Fold cross-validation using the `cv.lm( )` function in the DAAG package.
+
+```{r,  eval=T, warning=F, message=F}
+# K-fold cross-validation
+cv.lm(iris, fit2, m=3) # 3 fold cross-validation
+```
+
+Sum the Mean Square Error (MSE) for each fold, divide by the number of observations, and take the square root to get the cross-validated standard error of estimate.
+
+You can assess R2 shrinkage via K-fold cross-validation. Using the `crossval()` function from the `bootstrap` package, do the following:
+
+
+```{r,  eval=T, warning=F, message=F}
+# Assessing R2 shrinkage using 10-Fold Cross-Validation
+# define functions
+theta.fit <- function(x,y){lsfit(x,y)}
+theta.predict <- function(fit,x){cbind(1,x)%*%fit$coef}
+# matrix of predictors
+X <- as.matrix(iris[c("Sepal.Width","Sepal.Length")])
+# vector of predicted values
+y <- as.matrix(iris[c("Petal.Width")])
+results <- crossval(X,y,theta.fit,theta.predict,ngroup=3)
+cor(y, fit2$fitted.values)**2 # raw R2
+cor(y,results$cv.fit)**2 # cross-validated R2
+```
+
+## Comparing Models
+
+Let's change of data set to make it a bit more simple from now: salaries and other information of 62  professors in Cohen et. al. (2003, pp. 81-82). Check `?prof.salary`. 
+
+```{r,  eval=T, warning=F, message=F}
+library("MBESS")
+data(prof.salary)
+```
+
+We now build a serie of simple regression models
+
+```{r,  eval=T, warning=F, message=F}
+fit.prof1 <- lm(salary~pub, data=prof.salary)
+fit.prof2  <- lm(salary~citation, data=prof.salary)
+fit.prof3 <- lm(salary~pub+citation, data=prof.salary)
+fit.prof4  <- lm(salary~citation+pub, data=prof.salary)
+```
+
+Check [here](https://bcdudek.net/regression1/implementation-of-standard-multiple-regression-analyses-linear-modeling-with-multiple-ivs.html#diagnostic-and-added-variable-plots-for-the-full-two-iv-model) for the regression diagnostics and influence analysis. 
+
+
+We can pass two linear models to `anova` and ask it to compare them. We consider beginning wth fit.prof1  (only `pubs` was an independent variable in that simple regression), and compare fit.prof3  (which also included `cits` as an independent variable) to test the increment in the R-squared produced by the inclusion of `cits`. The F value matches the Type III SS F test for `cits` and is the square of the *t* value that tested the regression coefficient of `cits`.
+
+
+```{r,  eval=T, warning=F, message=F}
+# compare model 3 to model 1 - stepping approach, evaluating a new variable (cits)
+anova(fit.prof1,fit.prof3)# note this is anova, not Anova
+```
+
+
+The next illustration compares the full model to the simple regression that only contained cits (fit2). The test is therefore the test of an hypothesis that increment in SS accounted for by pubs is zero. And this F also matches the F test of the Type III SS seen above.
+
+```{r,  eval=T, warning=F, message=F}
+# compare model 3 to model 2 - stepping approach, evaluating a new variable (pubs)
+anova(fit.prof2,fit.prof3)# note this is anova, not Anova
+```
+
+
+## Variable Selection
+
+An information criterion balances the fitness of a model with the number of predictors employed. Hence, it determines objectively the best model as the one that minimizes the information criterion. Two common criteria are the **Bayesian Information Criterion (BIC)** and the **Akaike Information Criterion (AIC)**. 
+
+$AIC(model)=-2*logLik(model) + npar(model) * 2$
+
+$BIC(model)=-2*logLik(model) + npar(model) * log(n)$
+
+where $Lik(model)$  is the likelihood of the model (how well the model fits the data) and $npar(model)$ is the number of parameters of the model, $k+2$ in the case of a multiple linear regression model with $k$ predictors.The AIC replaces $log(n)$ by $2$, so it penalizes less complex models.This is one of the reasons why BIC is preferred by some practitioners for model comparison. Also, because is consistent in selecting the true model: if enough data is provided, the BIC is guaranteed to select the data-generating model among a list of candidate models.
+
+Both are based on a **balance between the model fitness and its complexity**.Both BIC and AIC can be computed in `R` through the functions `BIC` and `AIC`. They take a model as the input. The lower the better with a rule of thumb = 2. 
+
+```{r,  eval=T, warning=F, message=F}
+BIC(fit.prof1); BIC(fit.prof2);BIC(fit.prof3)
+AIC(fit.prof1); AIC(fit.prof2);AIC(fit.prof3)
+```
+
+However, selecting a subset of predictor variables from a larger set (e.g., stepwise selection) remains a controversial topic. You can perform stepwise selection (forward, backward, both) using the `stepAIC()` and `stepBIC()` function from the `MASS` package. `stepAIC()` performs stepwise model selection by exact AIC.
+
+
+```{r,  eval=T, warning=F, message=F}
+# Stepwise Selection based on AIC
+fit.prof5  <- lm(salary~citation+pub+time, data=prof.salary)
+step1 <- stepAIC(fit.prof5, direction="both")
+step1$anova # display results
+
+
+#Stepwise Selection with BIC
+n<-dim(prof.salary)[1]
+step2 <- stepAIC(fit.prof5, k=log(n), direction="both")
+step2$anova # display results
+```
+ 
+When applying `stepAIC` for BIC/AIC, different final models might be selected depending on the choice of direction. This is the interpretation:
+
++ `“backward”`: starts from the full model, removes predictors sequentially.
++ `“forward”`: starts from the simplest model, adds predictors sequentially.
++ `“both”` (default): combination of the above.
+
+The advice is to try several of these methods and retain the one with minimum BIC/AIC. Set trace = 0 to omit lengthy outputs of information of the search procedure.
+
+Alternatively, you can perform all-subsets regression using the `leaps()` function from the `leaps` package. In the following code `nbest` indicates the number of subsets of each size to report. Here, the ten best models will be reported for each subset size (1 predictor, 2 predictors, etc.).
+
+```{r,  eval=T, warning=F, message=F}
+# All Subsets Regression
+leaps<-regsubsets(salary~citation+pub+time, data=prof.salary,nbest=10)
+# view results
+summary(leaps)
+# plot a table of models showing variables in each model.
+# models are ordered by the selection statistic.
+plot(leaps,scale="r2")
+# plot statistic by subset size
+# subsets(leaps, statistic="rsq")
+```
+
+Other options for `plot()` are bic, Cp, and adjr2. Other options for plotting with `subset()` are bic, cp, adjr2, and rss.
+
+## Model assesment
+
+It turns out that:
+
+```{r,  eval=T, warning=F, message=F}
+fit.prof6  <- lm(salary~citation+time, data=prof.salary)
+# gvlma(fit.prof6)
+summary(fit.prof6)
+```
+
+The first step in interpreting the multiple regression analysis is to examine the *F*-statistic and the associated *p*-value, at the bottom of the model summary.
+
+In our example, it can be seen that p-value of the F-statistic is `p-value: 2.258e-09`, which is highly significant. This means that, at least, one of the predictor variables is significantly related to the outcome variable.
+
+To see which predictor variables are significant, you can examine the coefficients table, which shows the estimate of regression beta coefficients and the associated t-statistic p-values:
+
+```{r,  eval=T, warning=F, message=F}
+summary(fit.prof6)$coefficient
+```
+
+For a given  predictor, the *t*-statistic evaluates whether or not there is significant association between this predictor and the outcome variable, that is whether the beta coefficient of the predictor is significantly different from zero.
+
+It can be seen that, changes in `citation` and `time`  are both significantly associated to changes in `salary`. For a given predictor variable, the coefficient ($\beta$) can be interpreted as the average effect on $y$ of a one unit increase in predictor, holding all other predictors fixed.
+
+For example, for a fixed values of `citation` the increase of one unit of `time` increase salary of `1061` unit on average (vs. `1379` unit in our example using a simple linear regression). If a predictor was not significant in our multiple regression model, it means that its change will not significantly affect `salary`. Therefore, it is possible to remove it from the model. 
+
+As we saw earlier, the confidence interval of the model coefficient can be extracted as follow:  
+
+```{r,  eval=T, warning=F, message=F}
+confint(fit.prof6)
+```
+
+### Accuracy
+
+As we have seen in simple linear regression, the overall quality of the model can be assessed by examining the R-squared ($R^2$) and Residual Standard Error (RSE).
+
+1. **The R-squared ($R^2$)**
+
+In multiple linear regression, the $R$ represents the correlation coefficient between the observed values of the outcome variable ($y$) and the fitted (i.e., predicted) values of $y$. For this reason, the value of $R$ will always be positive and will range from zero to one.
+
+$R^2$ represents the proportion of variance, in the outcome variable y, that may be predicted by knowing the value of the $x$ variables. An $R^2$ value close to 1 indicates that the model explains a large portion of the variance in the outcome variable.
+
+A problem with the $R^2$, is that, it will always increase when more variables are added to the model, even if those variables are only weakly associated with the response (James et al. 2014). A solution is to adjust the $R^2$ by taking into account the number of predictor variables.
+
+The adjustment in the “Adjusted R-Squared” value in the summary output is a correction for the number of $x$ variables included in the prediction model.
+
+2. **The Residual Standard Error (RSE).**
+
+As mentioned earlier, the RSE estimate gives a measure of error of prediction. The lower the RSE, the more accurate the model (on the data in hand).
+
+The error rate can be estimated by dividing the RSE by the mean outcome variable:
+
+```{r,  eval=T, warning=F, message=F}
+sigma(fit.prof6)/mean(prof.salary$salary)
+```
+
+Which only slightly increase our prediction in comparison with using a single predictor, the 'Petal.Length` (16 vs 17 %). A parcimonial choice may be to retain  fewer  predictors if the information they bring is not important enough in our prediction.
+
+### Model customization 
+
+To compute multiple regression using all of the predictors in the data set, simply type this:
+
+```{r,  eval=F, warning=F, message=F}
+model.full <- lm(salary ~., data = prof.salary)
+```
+
+If you want to perform the regression using all of the variables except one, say `Sepal.Width`, type this:
+
+```{r,  eval=F, warning=F, message=F}
+model.partial1 <- lm(salary ~. -sex, data = prof.salary) # salary~".", the "." means all of the variables in the dataset
+```
+
+Alternatively, you can use the update function:
+
+```{r,  eval=F, warning=F, message=F}
+model.partial2 <-  update(model.full,  ~. -sex)
+```
+
+# ANOVAs
