@@ -977,4 +977,4 @@ Alternatively, you can use the update function:
 model.partial2 <-  update(model.full,  ~. -sex)
 ```
 
-# ANOVAs
+
