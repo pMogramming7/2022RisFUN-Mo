@@ -1,13 +1,13 @@
 {
     "sortOrder": [
         {
-            "columnIndex": 2,
+            "columnIndex": 1,
             "ascending": false
         },
         {
-            "columnIndex": 1,
+            "columnIndex": 2,
             "ascending": false
         }
     ],
-    "path": "D:/R_WD/Git linked/2022RisFUN-Mo/Statistics"
+    "path": "D:/R_WD/Git linked/2022RisFUN-Mo/Statistics_II"
 }
