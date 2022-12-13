@@ -328,7 +328,7 @@ pairs(iris[,1:4], pch = 19,  cex = 0.5,
 ## irisCluster<-kmeans(iris[, 1:4], 3, nstart= 20)
 ## table(irisCluster$cluster, iris$Species)
 ## irisCluster$cluster<-as.factor(irisCluster$cluster)
-## plot7<-ggplot(iris, aes(Petal.Length, Petal.Width, color = irisCluster$cluster + geom_point()
+## plot7<-ggplot(iris, aes(Petal.Length, Petal.Width, color = irisCluster$cluster)) + geom_point()
 ## plot8<-ggplot(iris, aes(Petal.Length, Petal.Width, color = Species)) + geom_point()
 ## grid.arrange(plot7, plot8, ncol=2)
 

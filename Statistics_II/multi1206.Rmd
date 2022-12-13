@@ -1,5 +1,7 @@
 ---
 title: "Multivariate"
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r eval = TRUE,  message=F, include=F, warning=F, purl=F, results="hide"}
@@ -769,6 +771,7 @@ fviz_cluster(spe.kmeans, data = spe.norm,geom = "point",
 ### Best partition
 
 **Evaluating** partition is made using similar indicators than above (note: some may only apply to hierarchical or non-hierarchical clustering). Next are elbow and silhouette indicators:
+決定K mean algorithm分幾群最合適
 
 ```{r,  eval=T, message=F}
 # elbow, UPGMA, chord
@@ -893,7 +896,7 @@ set.seed(1)
 irisCluster<-kmeans(iris[, 1:4], 3, nstart= 20)
 table(irisCluster$cluster, iris$Species)
 irisCluster$cluster<-as.factor(irisCluster$cluster)
-plot7<-ggplot(iris, aes(Petal.Length, Petal.Width, color = irisCluster$cluster + geom_point()
+plot7<-ggplot(iris, aes(Petal.Length, Petal.Width, color = irisCluster$cluster)) + geom_point()
 plot8<-ggplot(iris, aes(Petal.Length, Petal.Width, color = Species)) + geom_point()
 grid.arrange(plot7, plot8, ncol=2)
 ```
@@ -903,6 +906,8 @@ ________________
 ## Decision trees
 
 [Here](https://www.youtube.com/watch?v=7VeUPuFGJHk&ab_channel=StatQuestwithJoshStarmer) for a basic understanding of decision trees: 
+
+since non of decision question can't filter result we want well, lowest gini impurity can be the root leave node, then sort which can be next leave node, to build a decision tree.
 
 ### Classification And Regression Trees (CART)
 
