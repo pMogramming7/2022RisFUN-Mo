@@ -28,6 +28,8 @@ library(RColorBrewer) # color tool
 library(ade4) # PCA plot
 library(factoextra) # PCA plot
 library(magrittr) #PCA plot
+library(sp)
+library(rworldmap)
 ```
 
 Data arrangement
@@ -188,6 +190,64 @@ fviz_pca_biplot(predominant.pca2,repel = T,habillage=control_pivot$region,
         axis.title = element_text(size = 7.5),
         axis.text = element_text(size = 7.5))
 
+```
+
+```{r, echo = TRUE}
+countries <- function(points)
+{  
+  countriesSP <- getMap(resolution='low')
+  pointsSP = SpatialPoints(points, proj4string=CRS(proj4string(countriesSP)))  
+  indices = over(pointsSP, countriesSP)
+  indices$ADMIN  #returns country name
+}
+points <- data.frame(lon=control_pivot$x,lat=control_pivot$y)
+control_pivot$country <- countries(points)
+presence.pre.drivers <- control_pivot%>%
+ mutate(presence=1)%>%
+ pivot_wider(id_cols = c(sampleid,x,y,region,country),names_from = predominant.driver,values_from = presence)
+presence.pre.drivers[,-(1:5)] <-ifelse(is.na(presence.pre.drivers[,-(1:5)]),0,1)
+```
+
+```{r, echo = TRUE}
+#沒用國家去分
+predominant.pca2 <- dudi.pca(presence.pre.drivers[-(1:5)],
+                             scannf=F,nf=6,scale = F)
+fviz_eig(predominant.pca2)
+get_eig(predominant.pca2)
+fviz_pca_biplot(predominant.pca2,repel = T,habillage=control_pivot$region,
+                alpha.ind=0.5,addEllipses = T,ellipse.level=0.95,
+                labelsize=3)+
+  theme(text = element_text(size = 7.5),
+        axis.title = element_text(size = 7.5),
+        axis.text = element_text(size = 7.5))
+```
+
+```{r, echo = TRUE}
+#用國家去分
+presence.pre.drivers.na.omit <- presence.pre.drivers%>%na.omit(country)
+presence.pre.drivers.countries <- presence.pre.drivers.na.omit%>%
+  group_by(country)%>%
+  summarise(across("Pasture":"Mining and crude oil extraction",.fns=sum))
+#percentage
+presence.pre.drivers.countries[-1] <- presence.pre.drivers.countries[-1]/rowSums(presence.pre.drivers.countries[-1]) 
+countries.continent <- control_pivot%>% #國家跟洲對照表
+  select(country,region)%>%
+  unique()%>%
+  na.omit()%>%
+  arrange(country)
+
+
+predominant.pca4 <- dudi.pca(presence.pre.drivers.countries[,-1],
+                             scannf=F,nf=9,scale = F)
+fviz_eig(predominant.pca4)
+get_eig(predominant.pca4)
+fviz_pca_biplot(predominant.pca4,repel = T,
+                alpha.ind=0.5,
+                labelsize=3,habillage = countries.continent$region,
+                addEllipses = T,ellipse.level=0.95)+
+  theme(text = element_text(size = 7.5),
+        axis.title = element_text(size = 7.5),
+        axis.text = element_text(size = 7.5))
 ```
 
 ```{r, echo = FALSE}
