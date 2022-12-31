@@ -15,7 +15,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ![strata, https://animalcorner.org/rainforests/canopy-layers/](D:/R_WD/Git linked/2022RisFUN-Mo/Final present/stratification.jpg)
 
 Here is a little video about the water flow in the sky of amazon tropical forest.
-[The Largest River On Earth Is In The Sky](https://www.youtube.com/watch?v=VGurBZ0b6nI)
+
+* [The Largest River On Earth Is In The Sky](https://www.youtube.com/watch?v=VGurBZ0b6nI)
 
 Chunk below are the tools we used in this dataset
 ```{r, echo=TRUE}
@@ -46,7 +47,7 @@ control_pivot <- control%>%pivot_wider(id_cols = c(sampleid,x,y),
 control_pivot <- rename(control_pivot, architecture=step3,predominant.driver=step1,other.drivers=step2)
 ```
 
-### Quick view of the dataset
+#### Quick view of the dataset
   Next, we make several maps to have a quick view about global forest loss in world wide and different tropical forest region. In the end we didn't chose the leaflet function, because we try to focus on three different tropical forest regions, namely: America, Africa and Aisa & Oceania.
 ```{r, echo=TRUE}
 # make the plots
@@ -61,8 +62,8 @@ predominant.driver <- ggplot(data=world)+
   scale_color_brewer(name="Predominant drivers",palette= "Set1")+
   theme_bw()+
   theme(legend.position = "bottom",
-        legend.title = element_text(size = 4),
-        legend.text = element_text(size=3))
+        legend.title = element_text(size = 4.5),
+        legend.text = element_text(size=4))
 predominant.driver #the distribution of predominant driver of global forest loss
 ```
 
@@ -78,8 +79,8 @@ SAmerica.predominant.plot <- ggplot(data=world)+  #America
   scale_color_brewer(name="Predominant drivers",palette= "Set1")+
   theme_bw()+
   theme(legend.position = "bottom",
-        legend.title = element_text(size = 4),
-        legend.text = element_text(size=3))
+        legend.title = element_text(size = 4.5),
+        legend.text = element_text(size=4))
 SAmerica.predominant.plot #the distribution of predominant forest loss driver in South America
 ```
 
@@ -95,8 +96,8 @@ Africa.predominant.plot <- ggplot(data=world)+  #Africa
   scale_color_brewer(name="Predominant drivers",palette= "Set1")+
   theme_bw()+
   theme(legend.position = "bottom",
-        legend.title = element_text(size = 4),
-        legend.text = element_text(size=3))
+        legend.title = element_text(size = 4.5),
+        legend.text = element_text(size=4))
 Africa.predominant.plot #the distribution of predominant forest loss driver in Africa
 ```
 
@@ -111,12 +112,12 @@ AO.predominant.plot <- ggplot(data=world)+  #Asia
   scale_color_brewer(name="Predominant drivers",palette= "Set1")+
   theme_bw()+
   theme(legend.position = "bottom",
-        legend.title = element_text(size = 4),
-        legend.text = element_text(size=3))
+        legend.title = element_text(size = 4.5),
+        legend.text = element_text(size=4))
 AO.predominant.plot #the distribution of predominant forest loss driver in South Asia and Oceania
 ```
 
-# Visulation by percentage of forest loss
+#### Visulation by percentage of forest loss
   In order to visualize the composition of forest loss in different region, we use bar plot to examine them, and also have a stacked bar plot for us to compare.
 ```{r, echo=TRUE}
 #define dataset into South America, Africa and Asia/Oceania to make barplot
@@ -202,6 +203,8 @@ Ratio_region <- ggplot(data = Assgin_merged,aes(x=region,y=ratio,fill=f))+
 Ratio_region
 ```
 
+### Data analysis and result
+
   Here we further assign data point to countries where it belongs to, and transform the drivers into matrix form so we can evaluate the difference instead of just visualizing them.
 ```{r, echo=TRUE}
 #categorize dataset into three continents
@@ -228,7 +231,7 @@ presence.pre.drivers <- control_pivot%>% #presence absence matrix
 presence.pre.drivers[,-(1:5)] <-ifelse(is.na(presence.pre.drivers[,-(1:5)]),0,1) #1= presence, 0=absence
 ```
 
-### PCA analysis of forest loss drivers in three tropical forest regions
+#### PCA analysis of forest loss drivers in three tropical forest regions
   We want to know which drivers can let us distinguish one region from others, to assess which driver impacts the most, we use PCA analysis to analyze them. After analysis, we found that subsistence agriculture cause the most forest loss in Africa region, but they seems have much overlapping in three different regions, so we try to analyze them from country level.
 ```{r, echo=TRUE}
 #not categorize into countries, just the lon & lat of data
